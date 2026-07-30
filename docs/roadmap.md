@@ -16,6 +16,10 @@ Deterministic Midnight Latency state machine, simulated topology and telemetry t
 
 Bounded log streaming and filters, service metric dashboards, trace waterfalls, actionable local alerts, fictional deployment history, accessible tabular alternatives, cross-tool correlation, and evidence collection from every telemetry source.
 
+## Phase 5 — Authoritative API and real-time delivery (complete)
+
+Allowlisted FastAPI scenario execution, ephemeral bounded sessions, validated commands, per-session locking and idempotency, versioned WebSocket batches, polling fallback, snapshot resynchronization, client connection state, and API-backed browser verification.
+
 ## Later phases (not started)
 
 Potential persistence, authentication, scoring, post-incident reports, team mode, custom scenario creation, and deployment. These are not available and no dates are promised.

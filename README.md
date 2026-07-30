@@ -2,11 +2,11 @@
 
 SentinelOps Incident Lab is an independent educational project for learning incident response and observability through safe, fictional cloud scenarios. It never connects to, scans, modifies, or interferes with real infrastructure. It is not a penetration-testing platform.
 
-## Phase 4
+## Phase 5
 
-This repository provides the monorepo foundation, public Next.js site, production-conscious FastAPI service, scenario catalog and briefings, plus a client-side investigation workspace for **The Midnight Latency Incident**. Phase 4 adds professional simulated log, metric, trace, alert, and deployment explorers with reproducible cross-tool correlation and evidence collection.
+This repository provides the scenario catalog, briefings, and investigation workspace for **The Midnight Latency Incident**. Phase 5 moves authoritative, deterministic execution into FastAPI and delivers versioned telemetry batches and snapshots over WebSockets with bounded polling fallback.
 
-The deterministic simulation is entirely local and all measurements are labelled simulated. WebSockets, backend telemetry execution, persistence, authentication, scoring, reports, team mode, and scenario creation are not implemented.
+Sessions are ephemeral server memory and all measurements are labelled simulated. The workspace can use an explicitly labelled local educational fallback when the development API is unavailable. MongoDB, authentication, persistent history, scoring, reports, team mode, and scenario creation are not implemented.
 
 ## Structure
 
@@ -36,7 +36,9 @@ The web app runs at `http://localhost:3000`; API documentation is available at `
 
 ## Verification
 
-Run `pnpm verify`, or use the individual `lint:*`, `typecheck:*`, and `test:*` scripts. Run `pnpm --filter @sentinelops/web test:e2e` for the Chromium investigation flow. No secrets are required for Phase 4.
+Run `pnpm verify`, or use the individual `lint:*`, `typecheck:*`, and `test:*` scripts. Run `pnpm --filter @sentinelops/web test:e2e` for the API-backed Chromium investigation flow. No secrets are required for Phase 5.
+
+FastAPI publishes interactive OpenAPI documentation at `http://localhost:8000/docs` outside production. Its generated schema is validated in the backend tests. See [API documentation](docs/api.md), [the real-time protocol](docs/realtime-protocol.md), and [operational limits](docs/operational-limits.md).
 
 ## Observability tools
 

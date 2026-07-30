@@ -3,7 +3,8 @@ const SESSION_ID_PATTERN = /^sim_[a-f0-9]{32}$/;
 export interface LocalSessionRecord {
   scenarioSlug: string;
   createdAt: string;
-  phase: 2;
+  phase: 2 | 5;
+  execution?: "api" | "local-fallback";
 }
 
 export function createLocalSessionId(
@@ -24,13 +25,15 @@ export function saveLocalSession(
   sessionId: string,
   scenarioSlug: string,
   storage: Pick<Storage, "setItem"> = sessionStorage,
+  execution: LocalSessionRecord["execution"] = "local-fallback",
 ): void {
   if (!isValidLocalSessionId(sessionId))
     throw new Error("Invalid local session ID.");
   const record: LocalSessionRecord = {
     scenarioSlug,
     createdAt: new Date().toISOString(),
-    phase: 2,
+    phase: 5,
+    execution,
   };
   storage.setItem(`sentinelops:${sessionId}`, JSON.stringify(record));
 }
@@ -46,7 +49,7 @@ export function loadLocalSession(
     const parsed = JSON.parse(raw) as Partial<LocalSessionRecord>;
     return typeof parsed.scenarioSlug === "string" &&
       typeof parsed.createdAt === "string" &&
-      parsed.phase === 2
+      (parsed.phase === 2 || parsed.phase === 5)
       ? (parsed as LocalSessionRecord)
       : null;
   } catch {

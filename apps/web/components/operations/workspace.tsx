@@ -14,6 +14,7 @@ import type {
   ToolId,
 } from "@/lib/simulation/types";
 import { useSimulation } from "@/lib/simulation/use-simulation";
+import { useAuthoritativeSimulation } from "@/lib/simulation/use-authoritative-simulation";
 import { loadLocalSession } from "@/lib/local-session";
 import {
   AlertCenter,
@@ -47,7 +48,13 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 const tools: { id: ToolId; label: string; icon: typeof Activity }[] = [
   { id: "overview", label: "Overview", icon: Boxes },
@@ -70,32 +77,47 @@ export function OperationsWorkspace({
   scenarioSlug: string;
   initialCorrelation?: Parameters<typeof useSimulation>[2];
 }) {
-  const { state, dispatch } = useSimulation(
-    "scenario-midnight-latency-001",
-    sessionId,
-    initialCorrelation,
-  );
-  const valid = useSyncExternalStore(
+  const recordRaw = useSyncExternalStore(
     () => () => undefined,
-    () => loadLocalSession(sessionId)?.scenarioSlug === scenarioSlug,
+    () => sessionStorage.getItem(`sentinelops:${sessionId}`),
     () => null,
   );
-  if (valid === null)
-    return (
-      <main id="main-content" className="workspace-loading">
-        <p>Validating local simulation session…</p>
-      </main>
+  const record = useMemo(
+    () => (recordRaw ? loadLocalSession(sessionId) : null),
+    [recordRaw, sessionId],
+  );
+  const { state, dispatch, connection, lastSynchronized, actionError } =
+    useAuthoritativeSimulation(
+      "scenario-midnight-latency-001",
+      sessionId,
+      record,
+      initialCorrelation,
     );
-  if (!valid) return <InvalidLocalSession />;
-  return <Workspace state={state} dispatch={dispatch} />;
+  if (!record || record.scenarioSlug !== scenarioSlug)
+    return <InvalidLocalSession />;
+  return (
+    <Workspace
+      state={state}
+      dispatch={dispatch}
+      connection={connection}
+      lastSynchronized={lastSynchronized}
+      actionError={actionError}
+    />
+  );
 }
 
 function Workspace({
   state,
   dispatch,
+  connection,
+  lastSynchronized,
+  actionError,
 }: {
   state: SimulationState;
   dispatch: React.Dispatch<SimulationEvent>;
+  connection: string;
+  lastSynchronized: string | null;
+  actionError: string;
 }) {
   const [exitOpen, setExitOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
@@ -139,6 +161,27 @@ function Workspace({
       <div className="sr-only" role="status" aria-live="assertive">
         {state.announcement}
       </div>
+      <section className={`connection-banner ${connection}`} aria-live="polite">
+        <strong>
+          {connection === "local-fallback"
+            ? "Local educational fallback"
+            : `API ${connection}`}
+        </strong>
+        <span>
+          {connection === "unavailable"
+            ? "The API is unavailable. Your current snapshot remains visible; retry after the service recovers."
+            : connection === "local-fallback"
+              ? "This temporary simulation runs only in this tab and is not synchronized or persisted."
+              : lastSynchronized
+                ? `Last synchronized ${new Date(lastSynchronized).toLocaleTimeString()}`
+                : "Establishing an authoritative simulation session…"}
+        </span>
+      </section>
+      {actionError && (
+        <p className="action-sync-error" role="alert">
+          Action not applied: {actionError}
+        </p>
+      )}
       <header className="incident-bar">
         <div>
           <span className="severity-pill">SEV-2</span>
@@ -194,7 +237,7 @@ function Workspace({
         <button
           type="button"
           onClick={() => dispatch({ type: "ADVANCE" })}
-          disabled={state.status === "completed"}
+          disabled={state.status === "running" || state.status === "completed"}
         >
           <StepForward size={14} /> Advance interval
         </button>
@@ -203,6 +246,12 @@ function Workspace({
           <select
             aria-label="Simulation speed"
             value={state.speed}
+            disabled={connection !== "local-fallback"}
+            title={
+              connection !== "local-fallback"
+                ? "Server simulation speed is fixed in Phase 5."
+                : undefined
+            }
             onChange={(event) =>
               dispatch({
                 type: "SET_SPEED",
@@ -215,7 +264,16 @@ function Workspace({
             <option value="4">4×</option>
           </select>
         </label>
-        <button type="button" onClick={() => setResetOpen(true)}>
+        <button
+          type="button"
+          onClick={() => setResetOpen(true)}
+          disabled={connection !== "local-fallback"}
+          title={
+            connection !== "local-fallback"
+              ? "Authoritative sessions cannot be reset in Phase 5."
+              : undefined
+          }
+        >
           <RotateCcw size={14} /> Reset
         </button>
       </div>

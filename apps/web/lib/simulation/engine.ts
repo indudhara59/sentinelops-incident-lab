@@ -514,6 +514,14 @@ export function simulationReducer(
   event: SimulationEvent,
 ): SimulationState {
   switch (event.type) {
+    case "APPLY_SERVER_SNAPSHOT":
+      return {
+        ...state,
+        ...event.snapshot,
+        selectedServiceId: state.selectedServiceId,
+        activeTool: state.activeTool,
+        correlation: state.correlation,
+      };
     case "START":
       return state.status === "ready" ? { ...state, status: "running" } : state;
     case "PAUSE":

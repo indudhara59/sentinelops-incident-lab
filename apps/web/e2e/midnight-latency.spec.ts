@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-test("investigates the midnight latency scenario locally", async ({ page }) => {
+test("investigates a short API-backed midnight latency incident", async ({
+  page,
+}) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/scenarios/midnight-latency-incident");
   await page.getByRole("button", { name: /Start Investigation/i }).click();
@@ -10,7 +12,9 @@ test("investigates the midnight latency scenario locally", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "The Midnight Latency Incident" }),
   ).toBeVisible();
+  await expect(page.getByText("API connected")).toBeVisible();
   await page.getByRole("button", { name: "Start simulation" }).click();
+  await page.getByRole("button", { name: "Pause" }).click();
   for (let index = 0; index < 4; index += 1)
     await page.getByRole("button", { name: "Advance interval" }).click();
   await page.getByRole("button", { name: /Order service,/i }).click();
@@ -41,6 +45,7 @@ test("investigates the midnight latency scenario locally", async ({ page }) => {
     .getByPlaceholder("What might explain the impact?")
     .fill("Database connection pressure");
   await page.getByRole("button", { name: "Create hypothesis" }).click();
+  await page.getByRole("button", { name: "Resume" }).click();
   await page.getByRole("button", { name: "Pause" }).click();
   await page.getByRole("button", { name: "Resume" }).click();
   await page.getByRole("tab", { name: "Actions" }).click();

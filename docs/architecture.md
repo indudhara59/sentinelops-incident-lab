@@ -1,4 +1,4 @@
-# Phase 3 architecture
+# Phase 5 architecture
 
 The repository separates the public experience, API boundary, and shared contracts so later simulation capabilities can evolve without coupling UI rendering to backend internals.
 
@@ -9,9 +9,11 @@ Browser -> Next.js (apps/web) -> FastAPI (services/api)
                         packages/shared
 ```
 
-Phase 3 remains server-stateless. There is no database, authentication, WebSocket transport, scoring system, or real-infrastructure integration. FastAPI still exposes only service metadata and health/status probes. The simulation engine is a pure client-side reducer driven by a scenario ID, session seed, simulated time, and recorded player actions.
+FastAPI is authoritative for the scenario seed, simulation clock, lifecycle state, telemetry, alerts, actions, evidence, and hypotheses. Its allowlisted registry constructs one known engine; request content cannot select Python classes, modules, source code, or commands. Each in-memory session has a lock, bounded event history, TTL, subscriber queues, and one cancellable runner.
 
-Scenario definitions remain divided at a code boundary. The ready Midnight Latency scenario now hands its temporary `sessionStorage` record to a validated workspace. Telemetry is derived in memory without event API requests. Logs and metrics are bounded, timers have one owner, and reset reconstructs the original seeded state.
+The browser is a responsive projection. It keeps view-only selection and correlation state, applies authoritative snapshots, ignores duplicate sequences, and resynchronizes after gaps or reconnects. WebSocket messages batch state and telemetry. Controlled snapshot polling is the transport fallback; telemetry is never fetched item by item. A local reducer remains only as a labelled educational fallback.
+
+The service is intentionally single-process and ephemeral. There is no database, authentication, durable history, team synchronization, scoring system, or real-infrastructure integration.
 
 ## Security boundaries
 

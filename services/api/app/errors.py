@@ -6,6 +6,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.simulation.store import StoreError
+
 
 def error_payload(
     request: Request,
@@ -55,4 +57,11 @@ async def unexpected_error_handler(request: Request, exc: Exception) -> JSONResp
             code="INTERNAL_SERVER_ERROR",
             message="An unexpected error occurred.",
         ),
+    )
+
+
+async def store_error_handler(request: Request, exc: StoreError) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=error_payload(request, code=exc.code, message=exc.message),
     )

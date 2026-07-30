@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     environment: Literal["development", "test", "staging", "production"] = "development"
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    max_active_sessions: int = Field(default=50, ge=1, le=1_000)
+    session_ttl_seconds: int = Field(default=1_800, ge=60, le=86_400)
+    session_rate_limit_per_minute: int = Field(default=120, ge=10, le=10_000)
 
     @field_validator("cors_origins")
     @classmethod

@@ -1044,6 +1044,35 @@ select {
   color: var(--ops-text);
   font-size: 12px;
 }
+.connection-banner {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 18px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 92%, var(--cyan));
+  color: var(--muted);
+  font-size: 9px;
+}
+.connection-banner strong {
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.connection-banner.unavailable,
+.connection-banner.reconnecting {
+  border-left: 3px solid var(--amber);
+}
+.connection-banner.connected {
+  border-left: 3px solid var(--emerald);
+}
+.action-sync-error {
+  margin: 0;
+  padding: 8px 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--red) 45%, var(--line));
+  color: var(--red);
+  font-size: 9px;
+}
 .incident-bar {
   display: grid;
   grid-template-columns: minmax(300px, 1fr) auto auto;

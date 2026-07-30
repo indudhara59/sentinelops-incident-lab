@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { getScenarioBySlug } from "@/data/scenarios";
 import { ScenarioBriefing } from "./scenario-briefing";
@@ -44,7 +44,8 @@ describe("scenario briefing", () => {
     expect(page).not.toContain("omit release");
   });
 
-  it("creates a local session and navigates to the Phase 3 placeholder", () => {
+  it("falls back locally when the API is unavailable", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("offline"));
     vi.spyOn(globalThis.crypto, "getRandomValues").mockImplementation(
       (array) => {
         (array as Uint8Array).fill(10);
@@ -60,11 +61,47 @@ describe("scenario briefing", () => {
       screen.getByRole("button", { name: /start investigation/i }),
     );
     const expected = "sim_0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a";
-    expect(push).toHaveBeenCalledWith(
-      `/operations/${expected}?scenario=midnight-latency-incident`,
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith(
+        `/operations/${expected}?scenario=midnight-latency-incident&fallback=local`,
+      ),
     );
     expect(sessionStorage.getItem(`sentinelops:${expected}`)).toContain(
-      '"phase":2',
+      '"phase":5',
+    );
+    vi.restoreAllMocks();
+  });
+
+  it("creates an authoritative API session when available", async () => {
+    const sessionId = "sim_11111111111111111111111111111111";
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: sessionId,
+          scenario_slug: "midnight-latency-incident",
+          seed: 1,
+          version: 0,
+          expires_at: "2026-01-01T01:00:00Z",
+          snapshot: {},
+        }),
+        { status: 201, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+    render(
+      <ScenarioBriefing
+        scenario={getScenarioBySlug("midnight-latency-incident")!}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: /start investigation/i }),
+    );
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith(
+        `/operations/${sessionId}?scenario=midnight-latency-incident`,
+      ),
+    );
+    expect(sessionStorage.getItem(`sentinelops:${sessionId}`)).toContain(
+      '"execution":"api"',
     );
     vi.restoreAllMocks();
   });

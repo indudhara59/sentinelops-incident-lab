@@ -8,6 +8,7 @@ export function useSimulation(
   scenarioId: string,
   sessionId: string,
   initial?: Partial<CorrelationContext> & { tool?: ToolId },
+  enableTimer = true,
 ) {
   const [state, dispatch] = useReducer(simulationReducer, undefined, () =>
     initial
@@ -30,12 +31,12 @@ export function useSimulation(
       : createInitialState(scenarioId, sessionId),
   );
   useEffect(() => {
-    if (state.status !== "running") return;
+    if (!enableTimer || state.status !== "running") return;
     const timer = window.setInterval(
       () => dispatch({ type: "ADVANCE" }),
       1000 / state.speed,
     );
     return () => window.clearInterval(timer);
-  }, [state.speed, state.status]);
+  }, [enableTimer, state.speed, state.status]);
   return { state, dispatch };
 }

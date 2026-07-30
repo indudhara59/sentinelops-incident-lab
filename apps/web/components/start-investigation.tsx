@@ -1,5 +1,6 @@
 "use client";
 
+import { createApiSession } from "@/lib/simulation/api-client";
 import { createLocalSessionId, saveLocalSession } from "@/lib/local-session";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -21,14 +22,27 @@ export function StartInvestigation({
     () => false,
   );
 
-  const start = () => {
+  const start = async () => {
     setStarting(true);
     setError("");
     try {
-      const sessionId = createLocalSessionId();
-      saveLocalSession(sessionId, scenarioSlug);
+      let sessionId: string;
+      let fallback = false;
+      try {
+        sessionId = (await createApiSession(scenarioSlug)).id;
+        saveLocalSession(sessionId, scenarioSlug, sessionStorage, "api");
+      } catch {
+        sessionId = createLocalSessionId();
+        fallback = true;
+        saveLocalSession(
+          sessionId,
+          scenarioSlug,
+          sessionStorage,
+          "local-fallback",
+        );
+      }
       router.push(
-        `/operations/${sessionId}?scenario=${encodeURIComponent(scenarioSlug)}`,
+        `/operations/${sessionId}?scenario=${encodeURIComponent(scenarioSlug)}${fallback ? "&fallback=local" : ""}`,
       );
     } catch {
       setError("A secure local session could not be created in this browser.");
@@ -55,7 +69,7 @@ export function StartInvestigation({
       >
         {starting ? (
           <>
-            <LoaderCircle className="spin" size={17} /> Creating local session…
+            <LoaderCircle className="spin" size={17} /> Creating simulation…
           </>
         ) : (
           <>
@@ -64,8 +78,9 @@ export function StartInvestigation({
         )}
       </button>
       <p className="session-note">
-        Creates a temporary, tab-local Phase 2 session. It is not sent to a
-        server or durably persisted.
+        Creates an ephemeral API session. If the development API is unavailable,
+        an explicitly labelled local educational fallback is used. Neither mode
+        is durably persisted.
       </p>
       {error && (
         <p className="form-error" role="alert">

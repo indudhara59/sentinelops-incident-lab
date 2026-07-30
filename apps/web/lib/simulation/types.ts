@@ -198,6 +198,7 @@ export interface SimulationState {
 }
 
 export type SimulationEvent =
+  | { type: "APPLY_SERVER_SNAPSHOT"; snapshot: Partial<SimulationState> }
   | { type: "START" }
   | { type: "PAUSE" }
   | { type: "RESUME" }
