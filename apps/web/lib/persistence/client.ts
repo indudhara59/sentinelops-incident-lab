@@ -10,9 +10,9 @@ export async function persistApiSnapshot(
     body: JSON.stringify({
       sessionId,
       scenarioId: snapshot.scenarioId ?? "scenario-midnight-latency-001",
-      scenarioSlug: "midnight-latency-incident",
-      scenarioTitle: "The Midnight Latency Incident",
-      difficulty: "intermediate",
+      scenarioSlug: snapshot.scenarioSlug ?? "midnight-latency-incident",
+      scenarioTitle: snapshot.scenarioTitle ?? "The Midnight Latency Incident",
+      difficulty: snapshot.difficulty ?? "intermediate",
       status: snapshot.investigationCompleted
         ? "completed"
         : snapshot.status === "paused"

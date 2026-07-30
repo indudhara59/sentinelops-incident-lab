@@ -60,28 +60,12 @@ class HypothesisPatch(BaseModel):
 
 
 class RootCauseSubmission(BaseModel):
-    affected_service: Literal["api-gateway", "order-service", "orders-database", "payment-service"]
-    failure_mechanism: Literal[
-        "database-connections-not-released",
-        "slow-database-queries",
-        "traffic-capacity-shortfall",
-        "payment-provider-latency",
-    ]
-    triggering_change: Literal[
-        "order-service-2.14.7-deployment",
-        "traffic-increase",
-        "database-maintenance",
-        "no-recent-change",
-    ]
+    affected_service: Identifier
+    failure_mechanism: Identifier
+    triggering_change: Identifier
     supporting_evidence: list[Identifier] = Field(min_length=3, max_length=20)
     rejected_alternatives: list[ShortText] = Field(default_factory=list, max_length=8)
-    proposed_mitigation: Literal[
-        "rollback-order-service-2.14.7",
-        "restart-order-service",
-        "scale-order-service",
-        "increase-database-pool",
-        "continue-observing",
-    ]
+    proposed_mitigation: Identifier
     confidence: int = Field(ge=0, le=100)
 
 

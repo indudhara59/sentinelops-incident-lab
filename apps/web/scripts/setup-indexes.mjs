@@ -104,9 +104,13 @@ const indexes = {
   ],
   saved_scenarios: [
     {
-      key: { ownerId: 1, scenarioId: 1 },
-      name: "owner_scenario",
+      key: { ownerId: 1, scenarioId: 1, version: -1 },
+      name: "owner_scenario_version",
       unique: true,
+    },
+    {
+      key: { ownerId: 1, archived: 1, updatedAt: -1 },
+      name: "owner_archived_updated",
     },
   ],
   user_preferences: [

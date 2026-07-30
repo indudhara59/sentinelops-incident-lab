@@ -150,7 +150,7 @@ class SessionStore:
         session.sequence += 1
         envelope = EventEnvelope(
             sequence=session.sequence,
-            type=event_type,  # type: ignore[arg-type]
+            type=event_type,
             session_id=session.id,
             payload=payload,
         )

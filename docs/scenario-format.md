@@ -1,5 +1,12 @@
 # Scenario format
 
+Phase 8 has two distinct scenario boundaries:
+
+- Built-ins are code-reviewed, allowlisted server definitions combining public metadata, declarative runtime profiles, and server-only truth.
+- User-authored scenarios conform to `sentinelops-custom-scenario@1`, remain private, and are interpreted only as bounded data for preview/test runs.
+
+Custom definitions include services/dependencies, initial values, ordered events, allowlisted metric patterns, inert log text, trace shapes, alerts, author-visible hidden truth, evidence, alternatives, allowlisted actions, recovery conditions, scoring weights totaling 100, and learning objectives. They cannot contain code, shell commands, regex fields, URLs, hostnames, credentials, network/file fields, or executable template expressions.
+
 Scenario content is typed in `@sentinelops/shared` and split into public and private definitions.
 
 ## Public definition

@@ -4,6 +4,7 @@ import {
   Settings,
   FileText,
   LogOut,
+  Blocks,
 } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "@/auth";
@@ -12,6 +13,7 @@ const links = [
   ["Overview", "/dashboard", LayoutDashboard],
   ["Investigations", "/dashboard/incidents", ListChecks],
   ["Reports", "/dashboard/reports", FileText],
+  ["Scenario builder", "/scenario-builder", Blocks],
   ["Settings", "/settings", Settings],
 ] as const;
 

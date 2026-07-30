@@ -151,7 +151,7 @@ export const scenarios: readonly PublicScenarioDefinition[] = [
       briefingOffsetMinutes: 10,
       simulatedWindowMinutes: 45,
     },
-    implementationStatus: "preview",
+    implementationStatus: "ready",
     initialNotification:
       "Transactional notifications are arriving late. The delivery backlog continues to grow even though incoming request volume is stable.",
     knownImpact: [
@@ -218,7 +218,7 @@ export const scenarios: readonly PublicScenarioDefinition[] = [
       briefingOffsetMinutes: 15,
       simulatedWindowMinutes: 40,
     },
-    implementationStatus: "preview",
+    implementationStatus: "ready",
     initialNotification:
       "Image transformations are taking longer and a small but increasing number of jobs are being retried after worker restarts.",
     knownImpact: [
@@ -292,7 +292,7 @@ export const scenarios: readonly PublicScenarioDefinition[] = [
       briefingOffsetMinutes: 5,
       simulatedWindowMinutes: 55,
     },
-    implementationStatus: "planned",
+    implementationStatus: "ready",
     initialNotification:
       "Support reports legitimate users are seeing more sign-in challenges while defensive monitors detect a distributed increase in failed attempts.",
     knownImpact: [
@@ -390,7 +390,7 @@ export const scenarios: readonly PublicScenarioDefinition[] = [
       briefingOffsetMinutes: 4,
       simulatedWindowMinutes: 65,
     },
-    implementationStatus: "planned",
+    implementationStatus: "ready",
     initialNotification:
       "Checkout availability is falling rapidly. Several upstream services report timeouts after payment processing began to degrade.",
     knownImpact: [

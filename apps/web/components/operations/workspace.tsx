@@ -68,11 +68,15 @@ const tools: { id: ToolId; label: string; icon: typeof Activity }[] = [
 
 export function OperationsWorkspace({
   sessionId,
+  scenarioId = "scenario-midnight-latency-001",
   scenarioSlug,
+  scenarioTitle,
   initialCorrelation,
 }: {
   sessionId: string;
+  scenarioId?: string;
   scenarioSlug: string;
+  scenarioTitle?: string;
   initialCorrelation?: Parameters<typeof useSimulation>[2];
 }) {
   const recordRaw = useSyncExternalStore(
@@ -86,7 +90,7 @@ export function OperationsWorkspace({
   );
   const { state, dispatch, connection, lastSynchronized, actionError } =
     useAuthoritativeSimulation(
-      "scenario-midnight-latency-001",
+      scenarioId,
       sessionId,
       record,
       initialCorrelation,
@@ -96,6 +100,8 @@ export function OperationsWorkspace({
   return (
     <Workspace
       sessionId={sessionId}
+      scenarioSlug={scenarioSlug}
+      scenarioTitle={scenarioTitle}
       state={state}
       dispatch={dispatch}
       connection={connection}
@@ -107,6 +113,8 @@ export function OperationsWorkspace({
 
 function Workspace({
   sessionId,
+  scenarioSlug,
+  scenarioTitle,
   state,
   dispatch,
   connection,
@@ -114,6 +122,8 @@ function Workspace({
   actionError,
 }: {
   sessionId: string;
+  scenarioSlug: string;
+  scenarioTitle: string | undefined;
   state: SimulationState;
   dispatch: React.Dispatch<SimulationEvent>;
   connection: string;
@@ -188,7 +198,11 @@ function Workspace({
           <span className="severity-pill">SEV-2</span>
           <div>
             <span>INC-0042 · SIMULATED</span>
-            <h1>The Midnight Latency Incident</h1>
+            <h1>
+              {state.scenarioTitle ??
+                scenarioTitle ??
+                "The Midnight Latency Incident"}
+            </h1>
           </div>
         </div>
         <dl>
@@ -343,7 +357,7 @@ function Workspace({
             body: JSON.stringify({ status: "abandoned" }),
           });
         }}
-        href="/scenarios/midnight-latency-incident"
+        href={`/scenarios/${scenarioSlug}`}
       />
       <ConfirmDialog
         open={resetOpen}
@@ -1069,22 +1083,31 @@ function ActionPanel({
         a command or contact a service.
       </p>
       <div className="action-grid">
-        {Object.entries(actionDefinitions).map(([id, action]) => (
-          <article key={id}>
-            <h3>{action.label}</h3>
-            <p>{action.risk}</p>
-            <button
-              type="button"
-              onClick={() =>
-                action.impactful
-                  ? setPending(id as ActionId)
-                  : dispatch({ type: "PERFORM_ACTION", action: id as ActionId })
-              }
-            >
-              {action.impactful ? "Review action" : "Observe interval"}
-            </button>
-          </article>
-        ))}
+        {Object.entries(actionDefinitions)
+          .filter(
+            ([id]) =>
+              !state.allowedActions ||
+              state.allowedActions.includes(id as ActionId),
+          )
+          .map(([id, action]) => (
+            <article key={id}>
+              <h3>{action.label}</h3>
+              <p>{action.risk}</p>
+              <button
+                type="button"
+                onClick={() =>
+                  action.impactful
+                    ? setPending(id as ActionId)
+                    : dispatch({
+                        type: "PERFORM_ACTION",
+                        action: id as ActionId,
+                      })
+                }
+              >
+                {action.impactful ? "Review action" : "Observe interval"}
+              </button>
+            </article>
+          ))}
       </div>
       {state.actions.length > 0 && (
         <section className="action-history">

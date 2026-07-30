@@ -42,7 +42,9 @@ def record_root_cause(state: dict[str, Any], submission: RootCauseSubmission) ->
     return result
 
 
-def recovery_signals(state: dict[str, Any]) -> dict[str, Any]:
+def recovery_signals(
+    state: dict[str, Any], scenario: ScenarioDefinition | None = None
+) -> dict[str, Any]:
     mitigation_at = state["mitigationAt"]
     post_mitigation = [
         point
@@ -55,15 +57,34 @@ def recovery_signals(state: dict[str, Any]) -> dict[str, Any]:
         for trace in state["traces"]
         if mitigation_at is not None and trace["second"] > mitigation_at and trace["status"] == "OK"
     ]
+    definition = scenario
+    if definition is None:
+        from app.simulation.registry import get_scenario
+
+        definition = get_scenario(state.get("scenarioSlug", ""))
+    thresholds = (
+        definition.runtime.recovery_thresholds
+        if definition
+        else (
+            ("orderLatencyMs", "lt", 500),
+            ("checkoutErrorRate", "lt", 1),
+            ("dbPoolUtilizationPercent", "lt", 70),
+        )
+    )
     checks = {
-        "reducedLatency": bool(stable) and all(point["orderLatencyMs"] < 500 for point in stable),
-        "reducedErrorRate": bool(stable)
-        and all(point["checkoutErrorRate"] < 1 for point in stable),
-        "normalizedPoolUsage": bool(stable)
-        and all(point["dbPoolUtilizationPercent"] < 70 for point in stable),
-        "successfulCheckoutTraces": bool(successful_traces),
-        "stableObservationWindow": len(stable) >= 3,
+        f"normalized_{metric}": bool(stable)
+        and all(
+            point[metric] < target if operator == "lt" else point[metric] > target
+            for point in stable
+        )
+        for metric, operator, target in thresholds
     }
+    checks.update(
+        {
+            "successfulCheckoutTraces": bool(successful_traces),
+            "stableObservationWindow": len(stable) >= 3,
+        }
+    )
     return {
         "checks": checks,
         "verified": all(checks.values()),
@@ -149,16 +170,18 @@ def _score(state: dict[str, Any], scenario: ScenarioDefinition) -> list[dict[str
     )
     mitigation = (
         10
-        if "rollback" in actions and submission["proposed_mitigation"] == truth.primary_mitigation
+        if scenario.runtime.primary_action in actions
+        and submission["proposed_mitigation"] == truth.primary_mitigation
         else 5
-        if "restart" in actions
+        if set(actions) & set(scenario.runtime.temporary_actions)
         else 3
-        if {"scale", "increase-pool"} & set(actions)
+        if set(actions) & set(scenario.runtime.risky_actions)
         else 0
     )
     values["Mitigation selection"] = (
         mitigation,
-        "Rollback is primary; temporary symptom relief receives partial credit.",
+        "The scenario's primary mitigation earns full credit; temporary relief "
+        "earns partial credit.",
     )
     recovery = 10 if state["recoveryVerification"]["verified"] else 0
     values["Recovery verification"] = (
@@ -176,11 +199,8 @@ def _score(state: dict[str, Any], scenario: ScenarioDefinition) -> list[dict[str
         documentation,
         "Summary, lessons, follow-ups, and rejected alternatives were recorded.",
     )
-    risky = (
-        actions.count("increase-pool") * 2
-        + actions.count("pause-consumer") * 3
-        + max(0, actions.count("restart") - 1)
-    )
+    risky = sum(actions.count(action) * 2 for action in scenario.runtime.risky_actions)
+    risky += sum(max(0, actions.count(action) - 1) for action in scenario.runtime.temporary_actions)
     safety = max(0, 10 - risky)
     values["Operational safety"] = (
         safety,
@@ -241,14 +261,7 @@ def complete_incident(
         "recoveryVerification": result["recoveryVerification"],
         "score": {"total": total, "maximum": 100, "breakdown": breakdown},
         "missedEvidence": missed,
-        "betterInvestigationPath": [
-            "Confirm checkout impact and acknowledge active alerts.",
-            "Correlate the order-service deployment with pool usage, connection-wait "
-            "logs, and slow traces.",
-            "Link diverse evidence to a supported hypothesis and reject plausible alternatives.",
-            "Apply the lowest-risk corrective mitigation, then verify every recovery "
-            "signal over a stable window.",
-        ],
+        "betterInvestigationPath": list(scenario.runtime.better_path),
         "lessonsLearned": documentation.lessons_learned,
         "followUpActions": documentation.follow_up_actions,
         "replay": {

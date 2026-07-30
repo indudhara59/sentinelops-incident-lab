@@ -25,7 +25,6 @@ export default async function OperationsPage({
   if (
     !isValidLocalSessionId(sessionId) ||
     !scenario ||
-    scenario.slug !== "midnight-latency-incident" ||
     scenario.implementationStatus !== "ready"
   )
     notFound();
@@ -50,7 +49,9 @@ export default async function OperationsPage({
   return (
     <OperationsWorkspace
       sessionId={sessionId}
+      scenarioId={scenario.id}
       scenarioSlug={scenario.slug}
+      scenarioTitle={scenario.title}
       initialCorrelation={{
         tool,
         service: query.service ?? null,

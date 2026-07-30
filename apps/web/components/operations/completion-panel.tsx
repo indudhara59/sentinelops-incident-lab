@@ -10,6 +10,166 @@ import { CheckCircle2, ClipboardCheck, FileCheck2 } from "lucide-react";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
+const conclusionOptions: Record<
+  string,
+  {
+    services: string[];
+    mechanisms: string[];
+    triggers: string[];
+    mitigations: string[];
+  }
+> = {
+  "scenario-midnight-latency-001": {
+    services: [
+      "api-gateway",
+      "order-service",
+      "orders-database",
+      "payment-service",
+    ],
+    mechanisms: [
+      "database-connections-not-released",
+      "slow-database-queries",
+      "traffic-capacity-shortfall",
+      "payment-provider-latency",
+    ],
+    triggers: [
+      "order-service-2.14.7-deployment",
+      "traffic-increase",
+      "database-maintenance",
+      "no-recent-change",
+    ],
+    mitigations: [
+      "rollback-order-service-2.14.7",
+      "restart-order-service",
+      "scale-order-service",
+      "increase-database-pool",
+      "continue-observing",
+    ],
+  },
+  "scenario-queue-breaking-point-002": {
+    services: [
+      "notification-consumer",
+      "delivery-queue",
+      "notification-api",
+      "provider-gateway",
+    ],
+    mechanisms: [
+      "retry-amplification",
+      "producer-traffic-spike",
+      "provider-outage",
+      "template-cpu-saturation",
+    ],
+    triggers: [
+      "consumer-version-4.8.0",
+      "traffic-increase",
+      "provider-change",
+      "no-recent-change",
+    ],
+    mitigations: [
+      "disable-consumer-retries",
+      "rollback-consumer",
+      "scale-consumers",
+      "pause-consumer",
+      "continue-observing",
+    ],
+  },
+  "scenario-memory-pressure-003": {
+    services: ["image-worker", "job-queue", "upload-api", "object-store"],
+    mechanisms: [
+      "retained-image-buffers",
+      "queue-overload",
+      "storage-latency",
+      "capacity-shortfall",
+    ],
+    triggers: [
+      "image-worker-3.3.1",
+      "traffic-increase",
+      "storage-change",
+      "no-recent-change",
+    ],
+    mitigations: [
+      "rollback-image-worker",
+      "restart-workers",
+      "scale-workers",
+      "pause-intake",
+      "continue-observing",
+    ],
+  },
+  "scenario-auth-storm-004": {
+    services: [
+      "auth-service",
+      "auth-gateway",
+      "identity-database",
+      "risk-engine",
+    ],
+    mechanisms: [
+      "credential-stuffing-simulation",
+      "deployment-regression",
+      "identity-database-outage",
+      "legitimate-traffic-spike",
+    ],
+    triggers: [
+      "distributed-sign-in-burst",
+      "auth-deployment",
+      "database-maintenance",
+      "no-recent-change",
+    ],
+    mitigations: [
+      "enable-adaptive-rate-limits",
+      "scale-auth-service",
+      "disable-authentication",
+      "continue-observing",
+    ],
+  },
+  "scenario-cascading-checkout-005": {
+    services: [
+      "payment-service",
+      "checkout-api",
+      "order-service",
+      "orders-database",
+    ],
+    mechanisms: [
+      "synchronized-retry-amplification",
+      "database-saturation",
+      "deployment-regression",
+      "traffic-capacity-shortfall",
+    ],
+    triggers: [
+      "payment-service-degradation",
+      "checkout-deployment",
+      "traffic-increase",
+      "database-maintenance",
+    ],
+    mitigations: [
+      "disable-checkout-retries",
+      "scale-checkout",
+      "restart-payment-service",
+      "continue-observing",
+    ],
+  },
+};
+
+function optionPairs(
+  placeholder: string,
+  values: string[],
+): Array<[string, string]> {
+  return [
+    ["", placeholder],
+    ...values.map(
+      (value) =>
+        [
+          value,
+          value
+            .split("-")
+            .map((part) =>
+              part ? `${part[0]!.toUpperCase()}${part.slice(1)}` : part,
+            )
+            .join(" "),
+        ] as [string, string],
+    ),
+  ];
+}
+
 export function CompletionPanel({
   state,
   dispatch,
@@ -18,6 +178,9 @@ export function CompletionPanel({
   dispatch: React.Dispatch<SimulationEvent>;
 }) {
   const pathname = usePathname();
+  const choices =
+    conclusionOptions[state.scenarioId] ??
+    conclusionOptions["scenario-midnight-latency-001"]!;
   const [root, setRoot] = useState<RootCauseSubmission>({
     affected_service: "",
     failure_mechanism: "",
@@ -76,56 +239,25 @@ export function CompletionPanel({
           <SelectField
             label="Affected service"
             value={root.affected_service}
-            options={[
-              ["", "Select a service"],
-              ["api-gateway", "API gateway"],
-              ["order-service", "Order service"],
-              ["orders-database", "Orders database"],
-              ["payment-service", "Payment service"],
-            ]}
+            options={optionPairs("Select a service", choices.services)}
             onChange={(value) => setRoot({ ...root, affected_service: value })}
           />
           <SelectField
             label="Failure mechanism"
             value={root.failure_mechanism}
-            options={[
-              ["", "Select a mechanism"],
-              ["database-connections-not-released", "Connections not released"],
-              ["slow-database-queries", "Slow database queries"],
-              ["traffic-capacity-shortfall", "Traffic capacity shortfall"],
-              ["payment-provider-latency", "Payment provider latency"],
-            ]}
+            options={optionPairs("Select a mechanism", choices.mechanisms)}
             onChange={(value) => setRoot({ ...root, failure_mechanism: value })}
           />
           <SelectField
             label="Triggering change"
             value={root.triggering_change}
-            options={[
-              ["", "Select a trigger"],
-              [
-                "order-service-2.14.7-deployment",
-                "Order-service 2.14.7 deployment",
-              ],
-              ["traffic-increase", "Traffic increase"],
-              ["database-maintenance", "Database maintenance"],
-              ["no-recent-change", "No recent change"],
-            ]}
+            options={optionPairs("Select a trigger", choices.triggers)}
             onChange={(value) => setRoot({ ...root, triggering_change: value })}
           />
           <SelectField
             label="Proposed mitigation"
             value={root.proposed_mitigation}
-            options={[
-              ["", "Select a mitigation"],
-              [
-                "rollback-order-service-2.14.7",
-                "Roll back order-service 2.14.7",
-              ],
-              ["restart-order-service", "Restart order service"],
-              ["scale-order-service", "Scale order service"],
-              ["increase-database-pool", "Increase database pool"],
-              ["continue-observing", "Continue observing"],
-            ]}
+            options={optionPairs("Select a mitigation", choices.mitigations)}
             onChange={(value) =>
               setRoot({ ...root, proposed_mitigation: value })
             }
@@ -202,8 +334,8 @@ export function CompletionPanel({
       >
         <h3>2. Verify stable recovery</h3>
         <p>
-          The server checks latency, errors, pool usage, successful checkout
-          traces, and a stable three-interval observation window.
+          The server checks this scenario&apos;s bounded recovery thresholds,
+          successful traces, and a stable three-interval observation window.
         </p>
         <EvidenceChecks
           legend="Recovery evidence — link at least two items"

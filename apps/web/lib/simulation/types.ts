@@ -174,6 +174,9 @@ export interface SimulationModifiers {
 
 export interface SimulationState {
   scenarioId: string;
+  scenarioSlug?: string;
+  scenarioTitle?: string;
+  difficulty?: string;
   seed: number;
   elapsedSeconds: number;
   tick: number;
@@ -196,6 +199,9 @@ export interface SimulationState {
   modifiers: SimulationModifiers;
   correlation: CorrelationContext;
   announcement: string;
+  evidenceCatalog?: EvidenceDefinition[];
+  allowedActions?: ActionId[];
+  alternativeHypotheses?: string[];
   rootCauseSubmission: RootCauseSubmission | null;
   recoveryVerification: RecoveryVerification | null;
   completionDocumentation: CompletionDocumentation | null;

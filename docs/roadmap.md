@@ -28,6 +28,10 @@ Evidence-linked root-cause submission, recovery verification over a stable signa
 
 Optional online MongoDB Atlas persistence, Google authentication with Auth.js database sessions, immutable ownership enforcement, bounded saved investigation data, protected dashboard history and reports, preferences, safe indexes, and explicit unavailable states.
 
+## Phase 8 — Built-in scenarios and private scenario builder (complete)
+
+Four additional deterministic built-in engines, distinct topology and truth profiles, scenario-specific evidence, actions, recovery, scoring and reports, plus an authenticated owner-only declarative builder with validation, preview, private test runs, duplication, archive, and immutable historical versions.
+
 ## Later phases (not started)
 
-Potential team mode, custom scenario creation, and deployment hardening. These are not available and no dates are promised.
+Potential team mode, public marketplace workflows, and deployment hardening. These are not available and no dates are promised.

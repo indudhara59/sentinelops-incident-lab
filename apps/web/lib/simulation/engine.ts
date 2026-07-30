@@ -638,7 +638,7 @@ export function simulationReducer(
 }
 
 export function availableEvidence(state: SimulationState) {
-  return evidenceCatalog.filter(
+  return (state.evidenceCatalog ?? evidenceCatalog).filter(
     (item) => item.availableAt <= state.elapsedSeconds,
   );
 }

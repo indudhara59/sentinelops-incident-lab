@@ -31,12 +31,22 @@ import {
 import { fetchReport } from "./api-client";
 
 const SERVER_FIELDS = [
+  "scenarioId",
+  "scenarioSlug",
+  "scenarioTitle",
+  "difficulty",
+  "scenarioVersion",
+  "engineVersion",
   "seed",
   "elapsedSeconds",
   "tick",
   "stage",
   "status",
   "speed",
+  "services",
+  "evidenceCatalog",
+  "allowedActions",
+  "alternativeHypotheses",
   "logs",
   "metrics",
   "traces",

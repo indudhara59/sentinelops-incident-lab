@@ -2,11 +2,11 @@
 
 SentinelOps Incident Lab is an independent educational project for learning incident response and observability through safe, fictional cloud scenarios. It never connects to, scans, modifies, or interferes with real infrastructure. It is not a penetration-testing platform.
 
-## Phase 7
+## Phase 8
 
-This repository provides the scenario catalog, briefings, investigation workspace, and evidence-based post-incident workflow for **The Midnight Latency Incident**. Phase 7 adds optional MongoDB Atlas persistence, Google authentication through Auth.js, protected investigation history, reports, and account preferences.
+This repository provides a scenario catalog, briefings, investigation workspace, and evidence-based post-incident workflow. Phase 8 completes all five built-in incidents and adds an authenticated private declarative scenario builder with validation, deterministic preview, versioning, duplication, archival, and private test runs.
 
-FastAPI remains the authoritative, ephemeral simulation engine and all measurements are labelled simulated. Signed-in users can save bounded summaries, evidence, hypotheses, actions, scores, and reports to Atlas. Raw telemetry is not persisted. When Atlas or authentication is unavailable, public simulations still work and the UI clearly states that progress cannot be saved. Team mode and scenario creation are not implemented.
+FastAPI remains authoritative for the five allowlisted built-in engines and all measurements are labelled simulated. Custom drafts remain private in Atlas and never become executable modules: previews interpret bounded data locally and cannot access networks, files, commands, code, credentials, or real infrastructure. There is no public marketplace or team editing.
 
 ## Structure
 
@@ -56,6 +56,8 @@ The workspace includes bounded OpenTelemetry-shaped logs, simulated service metr
 ## Scenario authoring
 
 Public scenario briefings live in `apps/web/data/scenarios.ts`. Facilitator-only solution material lives in the server-only `apps/web/data/scenario-secrets.ts` module and must never be imported by a Client Component. See [the scenario format](docs/scenario-format.md) before editing either file.
+
+Authenticated users can open `/scenario-builder` to author private declarative scenarios. Validation is required before a deterministic private test run. See [the builder guide](docs/scenario-builder.md). Custom content is not loaded as JavaScript or Python and is not added to the FastAPI class/module registry.
 
 ## Project status
 

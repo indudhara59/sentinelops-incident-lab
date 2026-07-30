@@ -1,5 +1,11 @@
 # Simulation engine
 
+## Phase 8 profiles
+
+The FastAPI registry contains five explicit built-ins. Each frozen profile supplies topology, ordered stages, telemetry family, alert and evidence catalogs, alternative hypotheses, allowed actions, recovery thresholds, truth, and report guidance. The generic engine reads only the selected allowlisted profile and seed; request content cannot import a class or select executable logic.
+
+Custom scenario test runs use the TypeScript declarative preview interpreter, not FastAPI dynamic imports. It derives the same sample from definition plus seed, caps output, performs no fetch, filesystem, command, or eval operation, and does not claim durable execution.
+
 The authoritative Phase 5 engine is a pure Python transition layer in `services/api/app/simulation`. Its output is determined by scenario definition, numeric seed, simulation clock, current state, and ordered player actions. Randomness is used only to create session IDs and default seeds; telemetry jitter itself is seeded and replayable.
 
 ## States

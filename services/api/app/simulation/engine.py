@@ -4,7 +4,7 @@ from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from app.simulation.registry import ScenarioDefinition
+from app.simulation.registry import MIDNIGHT_LATENCY, ScenarioDefinition, get_scenario
 
 INTERVAL_SECONDS = 30
 MAX_LOGS = 100
@@ -36,7 +36,9 @@ def _timestamp(second: int) -> str:
     return (datetime(2026, 1, 15, 0, 0, tzinfo=UTC) + timedelta(seconds=second)).isoformat()
 
 
-def stage_for(second: int, mitigation_at: int | None) -> str:
+def stage_for(
+    second: int, mitigation_at: int | None, scenario: ScenarioDefinition = MIDNIGHT_LATENCY
+) -> str:
     if mitigation_at is not None:
         since = second - mitigation_at
         if since >= 120:
@@ -44,28 +46,11 @@ def stage_for(second: int, mitigation_at: int | None) -> str:
         if since >= 60:
             return "Recovery"
         return "Incident mitigation"
-    if second >= 150:
-        return "Checkout errors"
-    if second >= 120:
-        return "Order-service latency increase"
-    if second >= 90:
-        return "Database pool saturation"
-    if second >= 60:
-        return "Connection leak begins"
-    if second >= 30:
-        return "Deployment completed"
-    return "Normal"
+    return next(name for at, name in reversed(scenario.stages) if second >= at)
 
 
-def _severity(stage: str) -> int:
-    stages = [
-        "Normal",
-        "Deployment completed",
-        "Connection leak begins",
-        "Database pool saturation",
-        "Order-service latency increase",
-        "Checkout errors",
-    ]
+def _severity(stage: str, scenario: ScenarioDefinition = MIDNIGHT_LATENCY) -> int:
+    stages = [name for _, name in scenario.stages]
     return stages.index(stage) if stage in stages else 0
 
 
@@ -73,6 +58,10 @@ def initial_state(scenario: ScenarioDefinition, seed: int) -> dict[str, Any]:
     return {
         "scenarioId": scenario.public.id,
         "scenarioSlug": scenario.public.slug,
+        "scenarioTitle": scenario.public.title,
+        "difficulty": scenario.public.difficulty,
+        "scenarioVersion": scenario.version,
+        "engineVersion": ENGINE_VERSION,
         "seed": seed,
         "elapsedSeconds": 0,
         "tick": 0,
@@ -80,9 +69,24 @@ def initial_state(scenario: ScenarioDefinition, seed: int) -> dict[str, Any]:
         "status": "ready",
         "speed": 1,
         "logs": [],
-        "metrics": [_metric(seed, 0, 0, "Normal", {}, [])],
+        "metrics": [_metric(seed, 0, 0, "Normal", {}, [], scenario)],
         "traces": [],
-        "alerts": _alerts(),
+        "alerts": _alerts(scenario),
+        "services": _services(scenario, 0, "Normal", seed, 0),
+        "evidenceCatalog": [
+            {
+                "id": item.id,
+                "source": item.source,
+                "availableAt": item.available_at,
+                "timestamp": _timestamp(item.available_at),
+                "service": item.service,
+                "summary": item.summary,
+                "fields": dict(item.fields),
+            }
+            for item in scenario.runtime.evidence
+        ],
+        "alternativeHypotheses": list(scenario.runtime.alternative_hypotheses),
+        "allowedActions": list(scenario.runtime.allowed_actions),
         "timeline": [
             {
                 "id": "timeline-start",
@@ -112,15 +116,16 @@ def _metric(
     stage: str,
     modifiers: dict[str, int],
     actions: list[dict[str, Any]],
+    scenario: ScenarioDefinition = MIDNIGHT_LATENCY,
 ) -> dict[str, Any]:
-    level = _severity(stage)
+    level = _severity(stage, scenario)
     jitter = _hash(seed, tick, 99) % 23
     restart_times = [item["second"] for item in actions if item["action"] == "restart"]
     restart_relief = 120 if restart_times and second - max(restart_times) <= 60 else 0
     recovery = 0 if stage == "Completed" else 0.35 if stage == "Recovery" else 1
     pool_max = 40 + modifiers.get("poolBonus", 0)
     pool_used = min(pool_max, round((8 + level * 7) * recovery))
-    return {
+    metric = {
         "second": second,
         "requestRate": 780 + jitter,
         "orderLatencyMs": max(
@@ -144,12 +149,93 @@ def _metric(
         "queueDepth": max(2, 12 + level * 2),
         "serviceRestarts": sum(item["action"] == "restart" for item in actions),
     }
+    kind = scenario.runtime.kind
+    if kind == "queue":
+        metric["queueDepth"] = max(8, round((15 + level * 85 + tick * level * 6) * recovery))
+        metric["orderLatencyMs"] = max(90, round((120 + level * 310) * recovery + jitter))
+        metric["requestRate"] = 420 + level * 190 + jitter
+        metric["checkoutErrorRate"] = round(max(0.1, level * 1.8 * recovery), 1)
+    elif kind == "memory":
+        metric["memoryMb"] = max(380, round((410 + level * 170 + tick * level * 18) * recovery))
+        metric["serviceRestarts"] = max(metric["serviceRestarts"], max(0, level - 3))
+        metric["queueDepth"] = 10 + level * 24
+        metric["checkoutErrorRate"] = round(max(0.1, (level - 3) * 4.4 * recovery), 1)
+    elif kind == "auth":
+        metric["requestRate"] = round((650 + level * 780 + jitter) * recovery)
+        metric["checkoutErrorRate"] = round(max(0.1, level * 2.4 * recovery), 1)
+        metric["orderLatencyMs"] = max(80, round((100 + level * 390) * recovery + jitter))
+        metric["dbPoolUtilizationPercent"] = min(96, 25 + level * 11)
+    elif kind == "cascade":
+        metric["requestRate"] = round((720 + level * 360 + jitter) * recovery)
+        metric["orderLatencyMs"] = max(90, round((130 + level * 520) * recovery + jitter))
+        metric["checkoutErrorRate"] = round(max(0.1, level * 2.7 * recovery), 1)
+        metric["dbPoolUtilizationPercent"] = min(98, 30 + level * 12)
+    return metric
+
+
+def _scenario_for(state: dict[str, Any]) -> ScenarioDefinition:
+    return get_scenario(state.get("scenarioSlug", "")) or MIDNIGHT_LATENCY
+
+
+def _services(
+    scenario: ScenarioDefinition, second: int, stage: str, seed: int, tick: int
+) -> list[dict[str, Any]]:
+    level = _severity(stage, scenario)
+    recovering = stage in {"Incident mitigation", "Recovery"}
+    return [
+        {
+            "id": item.id,
+            "name": item.name,
+            "type": item.type,
+            "dependencies": list(item.dependencies),
+            "health": "recovering"
+            if recovering and item.id in scenario.runtime.affected_services
+            else "critical"
+            if level >= 5 and item.id in scenario.runtime.affected_services
+            else "degraded"
+            if level >= 2 and item.id in scenario.runtime.affected_services
+            else "healthy",
+            "requestsPerMinute": 300 + (_hash(seed, tick, index + 20) % 600),
+            "errorRate": round(level * 1.8, 1)
+            if item.id in scenario.runtime.affected_services
+            else 0.2,
+            "latencyMs": 75 + level * 360 if item.id in scenario.runtime.affected_services else 55,
+        }
+        for index, item in enumerate(scenario.runtime.services)
+    ]
 
 
 def _logs(
-    seed: int, tick: int, second: int, stage: str, metric: dict[str, Any]
+    seed: int,
+    tick: int,
+    second: int,
+    stage: str,
+    metric: dict[str, Any],
+    scenario: ScenarioDefinition = MIDNIGHT_LATENCY,
 ) -> list[dict[str, Any]]:
-    level = _severity(stage)
+    level = _severity(stage, scenario)
+    primary_message, upstream_message = {
+        "latency": (
+            "database connection acquisition timed out",
+            "checkout response returned upstream error",
+        ),
+        "queue": (
+            "delivery retry scheduled after consumer timeout",
+            "notification backlog delay increasing",
+        ),
+        "memory": (
+            "worker memory limit approached after image completion",
+            "image processing failed after worker restart",
+        ),
+        "auth": (
+            "simulated failed sign-in rejected by defensive controls",
+            "legitimate sign-in delayed by limiter pressure",
+        ),
+        "cascade": (
+            "payment timeout triggered bounded checkout retry",
+            "checkout failed after upstream timeout",
+        ),
+    }[scenario.runtime.kind]
     severity, message = (
         ("ERROR", "database connection acquisition timed out")
         if level >= 4
@@ -175,12 +261,12 @@ def _logs(
             **base,
             "id": f"log-{tick}-order",
             "level": severity,
-            "service": "order",
-            "serviceName": "order-service",
+            "service": scenario.runtime.affected_services[0],
+            "serviceName": scenario.runtime.affected_services[0],
             "spanId": _hex(seed, tick, 16, 3),
-            "message": message,
+            "message": primary_message if level >= 2 else message,
             "fields": {
-                "service.name": "order-service",
+                "service.name": scenario.runtime.affected_services[0],
                 "deployment.version": base["deploymentVersion"],
                 "request_id": request_id,
                 "duration_ms": metric["orderLatencyMs"],
@@ -191,36 +277,49 @@ def _logs(
             **base,
             "id": f"log-{tick}-gateway",
             "level": "ERROR" if level >= 5 else "INFO",
-            "service": "gateway",
-            "serviceName": "api-gateway",
+            "service": scenario.runtime.affected_services[-1],
+            "serviceName": scenario.runtime.affected_services[-1],
             "spanId": _hex(seed, tick, 16, 1),
-            "message": "checkout response returned upstream error"
-            if level >= 5
-            else "checkout request routed",
+            "message": upstream_message if level >= 5 else "simulated request routed",
             "fields": {
-                "service.name": "api-gateway",
-                "http.route": "/checkout",
+                "service.name": scenario.runtime.affected_services[-1],
+                "operation": "simulated-request",
                 "sentinelops.simulated": True,
             },
         },
     ]
 
 
-def _trace(seed: int, tick: int, second: int, metric: dict[str, Any]) -> dict[str, Any]:
+def _trace(
+    seed: int,
+    tick: int,
+    second: int,
+    metric: dict[str, Any],
+    scenario: ScenarioDefinition = MIDNIGHT_LATENCY,
+) -> dict[str, Any]:
     trace_id = _hex(seed, tick, 32, 17)
     duration = metric["orderLatencyMs"] + 46
+    services = scenario.runtime.services
+    root = services[0].id
+    affected = scenario.runtime.affected_services[0]
+    operation = {
+        "latency": "acquire database connection",
+        "queue": "wait for consumer capacity",
+        "memory": "decode image buffer",
+        "auth": "evaluate defensive rate limit",
+        "cascade": "wait for payment response",
+    }[scenario.runtime.kind]
     spans = [
-        (1, None, "POST /checkout", "gateway", duration),
-        (2, 1, "authorize", "auth", 24),
-        (3, 1, "create order", "order", metric["orderLatencyMs"]),
-        (4, 3, "acquire database connection", "orders-db", max(18, metric["orderLatencyMs"] - 95)),
-        (5, 3, "INSERT orders", "orders-db", 62),
+        (1, None, "handle simulated request", root, duration),
+        (2, 1, "route request", services[min(1, len(services) - 1)].id, 24),
+        (3, 1, "process operation", affected, metric["orderLatencyMs"]),
+        (4, 3, operation, services[-1].id, max(18, metric["orderLatencyMs"] - 95)),
     ]
     return {
         "id": trace_id,
         "second": second,
         "timestamp": _timestamp(second),
-        "rootService": "gateway",
+        "rootService": root,
         "durationMs": duration,
         "status": "ERROR" if metric["checkoutErrorRate"] >= 5 else "OK",
         "spans": [
@@ -232,9 +331,10 @@ def _trace(seed: int, tick: int, second: int, metric: dict[str, Any]) -> dict[st
                 "startMs": index * 4,
                 "durationMs": span_duration,
                 "status": "ERROR" if index == 4 and metric["checkoutErrorRate"] >= 5 else "OK",
-                "attributes": {"sentinelops.simulated": True, "db.system": "postgresql"}
-                if index >= 4
-                else {"sentinelops.simulated": True},
+                "attributes": {
+                    "sentinelops.simulated": True,
+                    "scenario.kind": scenario.runtime.kind,
+                },
                 "critical": index in {1, 3, 4},
                 "relatedLogIds": [f"log-{tick}-order"] if index in {3, 4} else [],
             }
@@ -243,41 +343,21 @@ def _trace(seed: int, tick: int, second: int, metric: dict[str, Any]) -> dict[st
     }
 
 
-def _alerts() -> list[dict[str, Any]]:
+def _alerts(scenario: ScenarioDefinition = MIDNIGHT_LATENCY) -> list[dict[str, Any]]:
     return [
         {
-            "id": "alert-db-pool",
-            "title": "Orders database pool saturation",
-            "severity": "warning",
-            "source": "metrics",
-            "service": "orders-db",
-            "firstTriggered": 90,
-            "lastUpdated": 90,
+            "id": item.id,
+            "title": item.title,
+            "severity": item.severity,
+            "source": item.source,
+            "service": item.service,
+            "firstTriggered": item.first_triggered,
+            "lastUpdated": item.first_triggered,
             "status": "firing",
             "assignedTo": None,
-        },
-        {
-            "id": "alert-order-latency",
-            "title": "Order-service latency SLO burn",
-            "severity": "critical",
-            "source": "metrics",
-            "service": "order",
-            "firstTriggered": 120,
-            "lastUpdated": 120,
-            "status": "firing",
-            "assignedTo": None,
-        },
-        {
-            "id": "alert-checkout-errors",
-            "title": "Checkout error rate elevated",
-            "severity": "critical",
-            "source": "logs",
-            "service": "gateway",
-            "firstTriggered": 150,
-            "lastUpdated": 150,
-            "status": "firing",
-            "assignedTo": None,
-        },
+            "metric": item.metric,
+        }
+        for item in scenario.runtime.alerts
     ]
 
 
@@ -285,10 +365,11 @@ def advance(state: dict[str, Any]) -> dict[str, Any]:
     if state["status"] == "completed":
         return deepcopy(state)
     result = deepcopy(state)
+    scenario = _scenario_for(result)
     result["elapsedSeconds"] += INTERVAL_SECONDS
     result["tick"] += 1
     previous_stage = result["stage"]
-    result["stage"] = stage_for(result["elapsedSeconds"], result["mitigationAt"])
+    result["stage"] = stage_for(result["elapsedSeconds"], result["mitigationAt"], scenario)
     if result["stage"] == "Completed":
         result["status"] = "completed"
     metric = _metric(
@@ -298,14 +379,20 @@ def advance(state: dict[str, Any]) -> dict[str, Any]:
         result["stage"],
         result["modifiers"],
         result["actions"],
+        scenario,
     )
-    logs = _logs(result["seed"], result["tick"], result["elapsedSeconds"], result["stage"], metric)
+    logs = _logs(
+        result["seed"], result["tick"], result["elapsedSeconds"], result["stage"], metric, scenario
+    )
     result["metrics"] = (result["metrics"] + [metric])[-MAX_METRICS:]
     result["logs"] = (result["logs"] + logs)[-MAX_LOGS:]
     result["traces"] = (
         result["traces"]
-        + [_trace(result["seed"], result["tick"], result["elapsedSeconds"], metric)]
+        + [_trace(result["seed"], result["tick"], result["elapsedSeconds"], metric, scenario)]
     )[-MAX_TRACES:]
+    result["services"] = _services(
+        scenario, result["elapsedSeconds"], result["stage"], result["seed"], result["tick"]
+    )
     for alert in result["alerts"]:
         if alert["firstTriggered"] <= result["elapsedSeconds"]:
             alert["lastUpdated"] = result["elapsedSeconds"]
@@ -327,8 +414,15 @@ def perform_action(
     state: dict[str, Any], action: str, target_id: str | None = None
 ) -> dict[str, Any]:
     result = deepcopy(state)
+    scenario = _scenario_for(result)
     if len(result["actions"]) >= MAX_ACTIONS:
         raise ValueError("Action limit reached.")
+    if action not in scenario.runtime.allowed_actions and action not in {
+        "ack-alert",
+        "assign-alert",
+        "silence-alert",
+    }:
+        raise ValueError("Action is not allowlisted for this scenario.")
     labels = {
         "restart": "Restart service",
         "scale": "Scale service",
@@ -355,12 +449,16 @@ def perform_action(
         else:
             alert["status"] = "silenced"
             effect = "Alert notifications silenced; evidence and telemetry are retained."
-    elif action == "rollback":
+    elif action == scenario.runtime.primary_action:
         if result["mitigationAt"] is not None:
             raise ValueError("Rollback has already been applied.")
         result["mitigationAt"] = result["elapsedSeconds"]
         result["stage"] = "Incident mitigation"
-        effect = "Rollback initiated; the simulation enters mitigation and recovery can begin."
+        effect = (
+            "Rollback initiated; recovery can begin."
+            if action == "rollback"
+            else "Primary mitigation initiated; recovery can begin."
+        )
     elif action == "increase-pool":
         result["modifiers"]["poolBonus"] += 10
         result["modifiers"]["latencyReduction"] += 300

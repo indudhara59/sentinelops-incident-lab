@@ -1,5 +1,9 @@
 # Phase 5 API
 
+## Phase 8 application routes
+
+Authenticated Next.js handlers expose owner-scoped `/api/custom-scenarios`, `/api/custom-scenarios/{id}`, and `/api/custom-scenarios/{id}/actions`. Actions are restricted to `validate`, `test-run`, `duplicate`, and `archive`; arbitrary names are rejected. These routes are separate from FastAPI's allowlisted built-in execution API and never register custom code.
+
 FastAPI serves the authoritative ephemeral simulation under `/api/v1`. Development Swagger UI is available at `/docs`; production disables interactive docs. Backend tests generate and validate the OpenAPI schema and required routes.
 
 ## Resources

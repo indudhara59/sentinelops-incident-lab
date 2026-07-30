@@ -20,6 +20,8 @@ Phase 6 adds a backend-only truth model beside each allowlisted engine. Snapshot
 
 Phase 7 uses Auth.js database sessions to establish an immutable user ID. Same-origin route handlers copy that ID into owner-scoped MongoDB repositories; browser input can never choose the owner. Atlas receives only bounded summary telemetry and meaningful investigation artifacts. An Atlas outage does not stop the FastAPI simulation.
 
+Phase 8 extends FastAPI's static registry to five frozen built-in runtime profiles. Custom scenarios follow a different path: Auth.js-protected Next.js handlers validate and store private declarative documents, while an inert bounded interpreter produces owner previews and test-run manifests. Custom documents cannot select Python classes, JavaScript functions, destinations, files, or commands and are never inserted into the FastAPI registry.
+
 ## Security boundaries
 
 - CORS origins must be explicitly configured.

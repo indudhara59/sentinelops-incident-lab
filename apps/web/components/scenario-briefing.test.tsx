@@ -106,17 +106,14 @@ describe("scenario briefing", () => {
     vi.restoreAllMocks();
   });
 
-  it("does not claim planned scenarios can start", () => {
+  it("allows a completed additional built-in scenario to start", () => {
     render(
       <ScenarioBriefing
         scenario={getScenarioBySlug("authentication-storm")!}
       />,
     );
     expect(
-      screen.queryByRole("button", { name: /start investigation/i }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByText("Simulation engine not available yet"),
+      screen.getByRole("button", { name: /start investigation/i }),
     ).toBeInTheDocument();
   });
 });

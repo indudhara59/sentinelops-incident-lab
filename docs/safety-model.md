@@ -1,5 +1,7 @@
 # Safety model
 
+Phase 8 custom authoring is declarative-only. The schema omits executable code, commands, external URLs, hostnames, network destinations, filesystem paths, credentials, and user regexes. Recursive validation rejects those fields and unsafe content patterns even when supplied as unknown JSON keys. Preview generation is a pure deterministic transformation over bounded arrays and numbers.
+
 SentinelOps Incident Lab is safe by construction: all organizations, services, alerts, data, commands, and outcomes are fictional. The project never connects to, scans, modifies, or interferes with real infrastructure and is not a penetration-testing platform.
 
 ## Phase 6 controls

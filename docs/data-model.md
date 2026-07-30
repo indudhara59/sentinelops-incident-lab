@@ -9,3 +9,7 @@ Every application-owned document includes an immutable `ownerId` copied from the
 Limits per incident are 24 metric series with 120 points each, 500 important timeline events, 250 actions, 100 evidence items, and 50 hypotheses. Notes are at most 4,000 characters and reports at most 100,000 serialized characters. Incomplete temporary sessions receive a 30-day expiration timestamp; completed records are not covered by that TTL index.
 
 Indexes place `ownerId` first and cover status, scenario, creation, completion, and stable ID/date pagination. Auth.js account and session lookups and child-record uniqueness are also indexed.
+
+## Custom scenarios
+
+`saved_scenarios` stores private declarative drafts with `ownerId`, stable `scenarioId`, integer `version`, schema version, content hash, validation status, archive state, and timestamps. The unique owner/scenario/version index preserves historical versions. Meaningful edits replace an unplayed draft version; after an exact version has completed sessions, edits create the next version. Incident sessions and reports retain the exact scenario version used.

@@ -1,4 +1,5 @@
 import asyncio
+import re
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, Response, WebSocket, WebSocketDisconnect
@@ -177,11 +178,34 @@ async def collect_evidence(
             return state
         if len(state["collectedEvidence"]) >= 100:
             raise ValueError("Evidence limit reached.")
+        catalog_item = next(
+            (item for item in state.get("evidenceCatalog", []) if item["id"] == body.id), None
+        )
+        if catalog_item is None:
+            source_prefix = {
+                "Logs": "ev-logs-",
+                "Metrics": "ev-metrics-",
+                "Traces": "ev-traces-",
+                "Deployments": "ev-deployments-",
+                "Alerts": "ev-alerts-",
+            }[body.source]
+            timestamp = re.fullmatch(r"T\+(\d{1,5})s", body.timestamp)
+            service_ids = {item["id"] for item in state.get("services", [])}
+            if (
+                not body.id.startswith(source_prefix)
+                or timestamp is None
+                or int(timestamp.group(1)) > state["elapsedSeconds"]
+                or body.service not in service_ids
+            ):
+                raise ValueError("Evidence is unknown or not yet available.")
+            catalog_item = {**body.model_dump(), "availableAt": int(timestamp.group(1))}
+        elif catalog_item["availableAt"] > state["elapsedSeconds"]:
+            raise ValueError("Evidence is unknown or not yet available.")
         result = {
             **state,
             "collectedEvidence": [
                 *state["collectedEvidence"],
-                {**body.model_dump(), "hypothesisIds": []},
+                {**catalog_item, "annotation": body.annotation, "hypothesisIds": []},
             ],
         }
         return result
@@ -244,6 +268,15 @@ async def submit_root_cause(
     body: RootCauseSubmission,
     idempotency_key: Annotated[str | None, Header(max_length=128)] = None,
 ) -> dict[str, Any]:
+    session = await store.get(session_id)
+    runtime = session.scenario.runtime
+    if (
+        body.affected_service not in runtime.conclusion_services
+        or body.failure_mechanism not in runtime.conclusion_mechanisms
+        or body.triggering_change not in runtime.conclusion_triggers
+        or body.proposed_mitigation not in runtime.conclusion_mitigations
+    ):
+        raise StoreError("INVALID_CONCLUSION", "Conclusion value is not allowlisted.", 422)
     return await _state_change(
         session_id,
         "root-cause",
@@ -292,7 +325,7 @@ async def _report(session_id: str) -> dict[str, Any]:
             "Complete the evidence-linked investigation and verify recovery first.",
             409,
         )
-    return report
+    return dict(report)
 
 
 @router.get("/sessions/{session_id}/report", tags=["completion"])

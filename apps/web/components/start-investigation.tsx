@@ -35,6 +35,11 @@ export function StartInvestigation({
         saveLocalSession(sessionId, scenarioSlug, sessionStorage, "api");
         void persistInitialApiSession(apiSession).catch(() => undefined);
       } catch {
+        if (scenarioSlug !== "midnight-latency-incident") {
+          throw new Error(
+            "This built-in scenario requires the authoritative simulation API.",
+          );
+        }
         sessionId = createLocalSessionId();
         fallback = true;
         saveLocalSession(
@@ -47,8 +52,12 @@ export function StartInvestigation({
       router.push(
         `/operations/${sessionId}?scenario=${encodeURIComponent(scenarioSlug)}${fallback ? "&fallback=local" : ""}`,
       );
-    } catch {
-      setError("A secure local session could not be created in this browser.");
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "A secure local session could not be created in this browser.",
+      );
       setStarting(false);
     }
   };

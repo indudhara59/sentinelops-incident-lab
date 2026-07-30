@@ -23,7 +23,13 @@ def create_session(seed: int = 42) -> dict[str, Any]:
 
 def test_allowlisted_scenario_registry() -> None:
     scenarios = list_scenarios()
-    assert [item.slug for item in scenarios] == ["midnight-latency-incident"]
+    assert [item.slug for item in scenarios] == [
+        "midnight-latency-incident",
+        "queue-at-the-breaking-point",
+        "memory-under-pressure",
+        "authentication-storm",
+        "cascading-checkout-failure",
+    ]
     assert get_scenario("../../arbitrary.py") is None
     response = client.get("/api/v1/scenarios/midnight-latency-incident")
     assert response.status_code == 200
