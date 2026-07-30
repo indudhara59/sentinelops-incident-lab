@@ -121,7 +121,7 @@ export default function Home() {
             </div>
             <div className="hero-notes">
               <span>
-                <Check /> No account required in Phase 1
+                <Check /> No account required
               </span>
               <span>
                 <ShieldCheck /> 100% simulated environment
@@ -332,7 +332,7 @@ export default function Home() {
           <span className="kicker">YOUR NEXT INCIDENT IS FICTIONAL</span>
           <h2>Build calm before the alert fires.</h2>
           <p>
-            Explore the Phase 1 experience and see what is coming to the live
+            Explore the scenario briefings and see what is coming to the live
             incident lab.
           </p>
           <Link className="button" href="/lab">

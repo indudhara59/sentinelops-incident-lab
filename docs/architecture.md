@@ -1,4 +1,4 @@
-# Phase 1 architecture
+# Phase 2 architecture
 
 The repository separates the public experience, API boundary, and shared contracts so later simulation capabilities can evolve without coupling UI rendering to backend internals.
 
@@ -9,7 +9,9 @@ Browser -> Next.js (apps/web) -> FastAPI (services/api)
                         packages/shared
 ```
 
-Phase 1 is intentionally stateless. There is no database, authentication, telemetry engine, WebSocket transport, scoring system, or real-infrastructure integration. FastAPI exposes only service metadata and health/status probes. The browser homepage uses deterministic, local demonstration data.
+Phase 2 remains intentionally stateless. There is no database, authentication, telemetry engine, WebSocket transport, scoring system, or real-infrastructure integration. FastAPI still exposes only service metadata and health/status probes.
+
+Scenario definitions are divided at a code boundary: `data/scenarios.ts` is browser-safe briefing data, while `data/scenario-secrets.ts` is marked `server-only` and contains facilitator material. Catalog filtering runs locally against only the safe definitions. A start action creates a temporary `sessionStorage` record and navigates to a non-operational Phase 3 placeholder.
 
 ## Security boundaries
 

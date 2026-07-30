@@ -9,7 +9,7 @@ export default function DocsPage() {
       intro="SentinelOps Incident Lab is an independent educational portfolio project. Its goal is to teach incident-response reasoning using entirely fictional environments and data."
     >
       <section className="prose-section">
-        <h2>Phase 1 architecture</h2>
+        <h2>Phase 2 architecture</h2>
         <p>
           A Next.js public experience and a stateless FastAPI service share a
           small contract package. The API provides health and status metadata

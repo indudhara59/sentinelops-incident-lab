@@ -1,28 +1,26 @@
 import type { Metadata } from "next";
-import { ContentPage } from "@/components/content-page";
-export const metadata: Metadata = { title: "Scenarios" };
+import { ScenarioCatalog } from "@/components/scenario-catalog";
+import { scenarios, serviceTypes } from "@/data/scenarios";
+
+export const metadata: Metadata = {
+  title: "Scenario catalog",
+  description: "Browse safe, fictional incident-response learning scenarios.",
+};
+
 export default function ScenariosPage() {
   return (
-    <ContentPage
-      kicker="SCENARIO CATALOG"
-      title="Incidents worth investigating."
-      intro="The interactive scenario catalog is planned for Phase 2. For now, meet the first fictional incident being designed for the lab."
-    >
-      <div className="notice">
-        <strong>The Midnight Latency Incident</strong>
-        <p>
-          A checkout slowdown leads from database timeouts to a connection-pool
-          leak introduced after an order-service deployment. This is a simulated
-          preview, not a playable scenario yet.
-        </p>
-      </div>
-      <section className="prose-section">
-        <h2>What scenarios will teach</h2>
-        <p>
-          Each scenario will center on evidence collection, hypothesis testing,
-          mitigation, and verification—not guessing or exploitation.
-        </p>
+    <main id="main-content" className="catalog-page">
+      <section className="catalog-hero grid-bg">
+        <div className="container">
+          <span className="kicker">SCENARIO CATALOG · PHASE 2</span>
+          <h1>Choose your next incident.</h1>
+          <p>
+            Practice disciplined response inside fictional environments. Browse
+            the briefings now; the operational simulations arrive in Phase 3.
+          </p>
+        </div>
       </section>
-    </ContentPage>
+      <ScenarioCatalog scenarios={scenarios} serviceTypes={serviceTypes} />
+    </main>
   );
 }

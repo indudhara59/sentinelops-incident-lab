@@ -4,12 +4,12 @@ export const metadata: Metadata = { title: "Incident Lab" };
 export default function LabPage() {
   return (
     <ContentPage
-      kicker="LIVE WORKSPACE"
+      kicker="LIVE WORKSPACE · PHASE 3"
       title="The incident room is being prepared."
-      intro="The live incident workspace arrives in a later phase. Phase 1 establishes the safe product foundation and lets you explore the investigation model."
+      intro="The live incident workspace arrives in Phase 3. Phase 2 lets you browse fictional scenarios, review briefings, and prepare an investigation safely."
     >
       <div className="notice">
-        <strong>Phase 1 status</strong>
+        <strong>Phase 2 status</strong>
         <p>
           No live workspace, telemetry stream, commands, WebSockets,
           authentication, or scoring are active. Nothing on this page connects
