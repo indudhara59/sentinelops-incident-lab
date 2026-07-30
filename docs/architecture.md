@@ -1,4 +1,4 @@
-# Phase 2 architecture
+# Phase 3 architecture
 
 The repository separates the public experience, API boundary, and shared contracts so later simulation capabilities can evolve without coupling UI rendering to backend internals.
 
@@ -9,9 +9,9 @@ Browser -> Next.js (apps/web) -> FastAPI (services/api)
                         packages/shared
 ```
 
-Phase 2 remains intentionally stateless. There is no database, authentication, telemetry engine, WebSocket transport, scoring system, or real-infrastructure integration. FastAPI still exposes only service metadata and health/status probes.
+Phase 3 remains server-stateless. There is no database, authentication, WebSocket transport, scoring system, or real-infrastructure integration. FastAPI still exposes only service metadata and health/status probes. The simulation engine is a pure client-side reducer driven by a scenario ID, session seed, simulated time, and recorded player actions.
 
-Scenario definitions are divided at a code boundary: `data/scenarios.ts` is browser-safe briefing data, while `data/scenario-secrets.ts` is marked `server-only` and contains facilitator material. Catalog filtering runs locally against only the safe definitions. A start action creates a temporary `sessionStorage` record and navigates to a non-operational Phase 3 placeholder.
+Scenario definitions remain divided at a code boundary. The ready Midnight Latency scenario now hands its temporary `sessionStorage` record to a validated workspace. Telemetry is derived in memory without event API requests. Logs and metrics are bounded, timers have one owner, and reset reconstructs the original seeded state.
 
 ## Security boundaries
 

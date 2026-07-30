@@ -34,3 +34,22 @@ export function saveLocalSession(
   };
   storage.setItem(`sentinelops:${sessionId}`, JSON.stringify(record));
 }
+
+export function loadLocalSession(
+  sessionId: string,
+  storage: Pick<Storage, "getItem"> = sessionStorage,
+): LocalSessionRecord | null {
+  if (!isValidLocalSessionId(sessionId)) return null;
+  try {
+    const raw = storage.getItem(`sentinelops:${sessionId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<LocalSessionRecord>;
+    return typeof parsed.scenarioSlug === "string" &&
+      typeof parsed.createdAt === "string" &&
+      parsed.phase === 2
+      ? (parsed as LocalSessionRecord)
+      : null;
+  } catch {
+    return null;
+  }
+}

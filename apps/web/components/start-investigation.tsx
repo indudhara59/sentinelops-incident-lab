@@ -3,7 +3,7 @@
 import { createLocalSessionId, saveLocalSession } from "@/lib/local-session";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 export function StartInvestigation({
   scenarioSlug,
@@ -15,6 +15,11 @@ export function StartInvestigation({
   const router = useRouter();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
+  const hydrated = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
 
   const start = () => {
     setStarting(true);
@@ -46,7 +51,7 @@ export function StartInvestigation({
         className="button start-button"
         type="button"
         onClick={start}
-        disabled={starting}
+        disabled={starting || !hydrated}
       >
         {starting ? (
           <>

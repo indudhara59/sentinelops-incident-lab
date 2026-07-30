@@ -6,9 +6,10 @@ The product lifecycle is deliberately divided into stages so a page never claims
 2. **Brief** — review severity, notification, known impact, initial alerts, environment, learning goals, and rules of engagement.
 3. **Prepare** — use the incident commander checklist to establish a disciplined investigation sequence.
 4. **Start locally** — for a ready scenario, generate a Web Crypto session reference and store minimal metadata in the current tab.
-5. **Operations placeholder** — acknowledge that the live workspace is a Phase 3 capability and that no engine is running.
+5. **Investigate locally** — inspect deterministic simulated telemetry, collect evidence, build hypotheses, and record safe actions.
+6. **Mitigate and verify** — observe deterministic recovery after an appropriate simulated action.
 
-Later phases may add investigation, mitigation, verification, and reporting. Phase 2 does not simulate telemetry, evaluate actions, compute scores, or produce reports.
+Phase 3 supports investigation, mitigation, and verification for one ready scenario. It does not compute scores, persist history, or produce reports.
 
 ## Incident commander checklist
 

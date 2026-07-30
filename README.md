@@ -2,11 +2,11 @@
 
 SentinelOps Incident Lab is an independent educational project for learning incident response and observability through safe, fictional cloud scenarios. It never connects to, scans, modifies, or interferes with real infrastructure. It is not a penetration-testing platform.
 
-## Phase 2
+## Phase 3
 
-This repository provides the monorepo foundation, public Next.js site, production-conscious FastAPI service, and a complete local scenario catalog and briefing experience. Phase 2 adds five fictional incident definitions, accessible search and filtering, safe briefing pages, and temporary browser-session handoff to an honest Phase 3 placeholder.
+This repository provides the monorepo foundation, public Next.js site, production-conscious FastAPI service, scenario catalog and briefings, plus a client-side investigation workspace for **The Midnight Latency Incident**. Phase 3 adds deterministic telemetry, topology exploration, evidence collection, hypotheses, safe simulated actions, and replay controls.
 
-The interactive operations workspace, telemetry execution, WebSockets, persistence, authentication, scoring, reports, and scenario creation are not implemented.
+The simulation is entirely local. WebSockets, backend telemetry execution, persistence, authentication, scoring, reports, team mode, and scenario creation are not implemented.
 
 ## Structure
 
@@ -36,7 +36,7 @@ The web app runs at `http://localhost:3000`; API documentation is available at `
 
 ## Verification
 
-Run `pnpm verify`, or use the individual `lint:*`, `typecheck:*`, and `test:*` scripts. No secrets are required for Phase 2.
+Run `pnpm verify`, or use the individual `lint:*`, `typecheck:*`, and `test:*` scripts. Run `pnpm --filter @sentinelops/web test:e2e` for the Chromium investigation flow. No secrets are required for Phase 3.
 
 ## Scenario authoring
 
