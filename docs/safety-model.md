@@ -2,7 +2,7 @@
 
 SentinelOps Incident Lab is safe by construction: all organizations, services, alerts, data, commands, and outcomes are fictional. The project never connects to, scans, modifies, or interferes with real infrastructure and is not a penetration-testing platform.
 
-## Phase 3 controls
+## Phase 4 controls
 
 - Scenario content uses invented organizations and environments.
 - The authentication scenario is limited to defensive analysis of simulated signals.
@@ -13,6 +13,9 @@ SentinelOps Incident Lab is safe by construction: all organizations, services, a
 - The operations engine is a pure browser reducer. It makes no telemetry requests and opens no WebSocket.
 - Action controls dispatch local state events only; they cannot execute commands.
 - Logs, metrics, traces, alerts, deployments, service health, and recovery are generated from fictional definitions.
+- Simulated logs contain safe identifiers and attributes only: no secrets, credentials, real people, customer data, or real repository commit values.
+- Alert acknowledgement, assignment, and silencing change local workflow state without deleting the signal or its evidence.
+- Correlation search parameters are allow-listed investigation context, not telemetry or session persistence.
 - Reset reproduces the same seed, and all runtime histories are bounded in memory.
 
 ## Contributor rule

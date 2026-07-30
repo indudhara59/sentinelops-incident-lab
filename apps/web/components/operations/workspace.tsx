@@ -16,6 +16,13 @@ import type {
 import { useSimulation } from "@/lib/simulation/use-simulation";
 import { loadLocalSession } from "@/lib/local-session";
 import {
+  AlertCenter,
+  DeploymentExplorer,
+  LogExplorer,
+  MetricsExplorer,
+  TraceExplorer,
+} from "./telemetry-explorers";
+import {
   Activity,
   AlertTriangle,
   BellRing,
@@ -57,13 +64,16 @@ const tools: { id: ToolId; label: string; icon: typeof Activity }[] = [
 export function OperationsWorkspace({
   sessionId,
   scenarioSlug,
+  initialCorrelation,
 }: {
   sessionId: string;
   scenarioSlug: string;
+  initialCorrelation?: Parameters<typeof useSimulation>[2];
 }) {
   const { state, dispatch } = useSimulation(
     "scenario-midnight-latency-001",
     sessionId,
+    initialCorrelation,
   );
   const valid = useSyncExternalStore(
     () => () => undefined,
@@ -105,6 +115,25 @@ function Workspace({
             ].includes(state.stage)
           ? "Checkout latency elevated"
           : "No confirmed customer impact";
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("tool", state.activeTool);
+    if (state.correlation.service)
+      params.set("service", state.correlation.service);
+    else params.delete("service");
+    if (state.correlation.traceId)
+      params.set("trace", state.correlation.traceId);
+    else params.delete("trace");
+    if (state.correlation.deploymentId)
+      params.set("deployment", state.correlation.deploymentId);
+    else params.delete("deployment");
+    params.set("range", state.correlation.timeRange);
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}?${params.toString()}`,
+    );
+  }, [state.activeTool, state.correlation]);
   return (
     <main id="main-content" className="operations-workspace">
       <div className="sr-only" role="status" aria-live="assertive">
@@ -482,7 +511,8 @@ function ToolPanel({
   state: SimulationState;
   dispatch: React.Dispatch<SimulationEvent>;
 }) {
-  if (state.activeTool === "overview") return <Overview state={state} />;
+  if (state.activeTool === "overview")
+    return <Overview state={state} dispatch={dispatch} />;
   if (state.activeTool === "evidence")
     return <EvidenceWorkspace state={state} dispatch={dispatch} />;
   if (state.activeTool === "actions")
@@ -503,6 +533,16 @@ function ToolPanel({
         </label>
       </div>
     );
+  if (state.activeTool === "logs")
+    return <LogExplorer state={state} dispatch={dispatch} />;
+  if (state.activeTool === "metrics")
+    return <MetricsExplorer state={state} dispatch={dispatch} />;
+  if (state.activeTool === "traces")
+    return <TraceExplorer state={state} dispatch={dispatch} />;
+  if (state.activeTool === "alerts")
+    return <AlertCenter state={state} dispatch={dispatch} />;
+  if (state.activeTool === "deployments")
+    return <DeploymentExplorer state={state} dispatch={dispatch} />;
   const source = (
     {
       alerts: "Alerts",
@@ -559,7 +599,13 @@ function PanelTitle({
     </div>
   );
 }
-function Overview({ state }: { state: SimulationState }) {
+function Overview({
+  state,
+  dispatch,
+}: {
+  state: SimulationState;
+  dispatch: React.Dispatch<SimulationEvent>;
+}) {
   return (
     <div>
       <PanelTitle icon={Boxes} title="Incident overview" />
@@ -581,7 +627,7 @@ function Overview({ state }: { state: SimulationState }) {
           <strong>{state.actions.length}</strong>
         </div>
       </div>
-      <Timeline state={state} />
+      <Timeline state={state} dispatch={dispatch} />
       {canRevealConclusion(state) && (
         <div className="conclusion">
           <ShieldCheck size={18} />
@@ -598,7 +644,13 @@ function Overview({ state }: { state: SimulationState }) {
     </div>
   );
 }
-function Timeline({ state }: { state: SimulationState }) {
+function Timeline({
+  state,
+  dispatch,
+}: {
+  state: SimulationState;
+  dispatch: React.Dispatch<SimulationEvent>;
+}) {
   return (
     <section className="incident-timeline">
       <h3>Incident timeline</h3>
@@ -612,6 +664,22 @@ function Timeline({ state }: { state: SimulationState }) {
             <div>
               <strong>{entry.title}</strong>
               <p>{entry.description}</p>
+              {entry.title === "Deployment completed" && (
+                <button
+                  type="button"
+                  className="timeline-link"
+                  onClick={() =>
+                    dispatch({
+                      type: "CORRELATE",
+                      tool: "deployments",
+                      deploymentId: "deploy-order-2147",
+                      service: "order",
+                    })
+                  }
+                >
+                  Open deployment marker
+                </button>
+              )}
             </div>
           </li>
         ))}

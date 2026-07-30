@@ -33,6 +33,8 @@ export type ActionId =
   | "disable-retry"
   | "pause-consumer"
   | "observe";
+export type AlertActionId = "ack-alert" | "assign-alert" | "silence-alert";
+export type AlertStatus = "firing" | "acknowledged" | "silenced";
 
 export interface ServiceState {
   id: string;
@@ -47,17 +49,85 @@ export interface ServiceState {
 export interface LogEntry {
   id: string;
   second: number;
+  timestamp: string;
   level: "INFO" | "WARN" | "ERROR";
   service: string;
+  serviceName: string;
+  traceId: string;
+  spanId: string;
+  deploymentVersion: string;
+  requestId: string;
   message: string;
-  fields: Record<string, string | number>;
+  fields: Record<string, string | number | boolean>;
 }
 export interface MetricPoint {
   second: number;
+  requestRate: number;
   orderLatencyMs: number;
+  latencyP50Ms: number;
+  latencyP99Ms: number;
   checkoutErrorRate: number;
+  cpuPercent: number;
+  memoryMb: number;
   dbPoolUsed: number;
   dbPoolMax: number;
+  dbPoolUtilizationPercent: number;
+  queueDepth: number;
+  serviceRestarts: number;
+}
+export interface SpanRecord {
+  id: string;
+  parentId: string | null;
+  name: string;
+  service: string;
+  startMs: number;
+  durationMs: number;
+  status: "OK" | "ERROR";
+  attributes: Record<string, string | number | boolean>;
+  critical: boolean;
+  relatedLogIds: string[];
+}
+export interface TraceRecord {
+  id: string;
+  second: number;
+  timestamp: string;
+  rootService: string;
+  durationMs: number;
+  status: "OK" | "ERROR";
+  spans: SpanRecord[];
+}
+export interface AlertRecord {
+  id: string;
+  title: string;
+  severity: "warning" | "critical";
+  source: string;
+  service: string;
+  firstTriggered: number;
+  lastUpdated: number;
+  status: AlertStatus;
+  assignedTo: "self" | null;
+  telemetryTool: "metrics" | "logs";
+  metric: string;
+  threshold: string;
+}
+export interface DeploymentRecord {
+  id: string;
+  service: string;
+  version: string;
+  previousVersion: string;
+  second: number;
+  timestamp: string;
+  status: "completed" | "rolled-back";
+  changeSummary: string;
+  reference: string;
+  diff: string[];
+  rollbackAvailable: boolean;
+}
+export interface CorrelationContext {
+  service: string | null;
+  traceId: string | null;
+  deploymentId: string | null;
+  timeRange: "5m" | "15m" | "30m" | "all";
 }
 export interface TimelineEntry {
   id: string;
@@ -88,7 +158,7 @@ export interface Hypothesis {
 }
 export interface PlayerAction {
   id: string;
-  action: ActionId;
+  action: ActionId | AlertActionId;
   label: string;
   second: number;
   risk: string;
@@ -112,6 +182,8 @@ export interface SimulationState {
   services: ServiceState[];
   logs: LogEntry[];
   metrics: MetricPoint[];
+  traces: TraceRecord[];
+  alerts: AlertRecord[];
   timeline: TimelineEntry[];
   collectedEvidence: CollectedEvidence[];
   hypotheses: Hypothesis[];
@@ -121,6 +193,7 @@ export interface SimulationState {
   activeTool: ToolId;
   mitigationAt: number | null;
   modifiers: SimulationModifiers;
+  correlation: CorrelationContext;
   announcement: string;
 }
 
@@ -143,4 +216,13 @@ export type SimulationEvent =
     }
   | { type: "ATTACH_EVIDENCE"; hypothesisId: string; evidenceId: string }
   | { type: "SET_NOTES"; notes: string }
-  | { type: "PERFORM_ACTION"; action: ActionId };
+  | { type: "PERFORM_ACTION"; action: ActionId }
+  | { type: "UPDATE_ALERT"; alertId: string; action: AlertActionId }
+  | {
+      type: "CORRELATE";
+      tool: ToolId;
+      service?: string | null;
+      traceId?: string | null;
+      deploymentId?: string | null;
+      timeRange?: CorrelationContext["timeRange"];
+    };

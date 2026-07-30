@@ -12,3 +12,5 @@ The incident header exposes severity, status, elapsed simulated time, impact, st
 - local evidence, hypothesis, annotation, and note workflows.
 
 Arrow Up/Down and Home/End move through the vertical tool tabs. On narrow screens the tools become a horizontal tab strip and the selected-service drawer becomes a bottom overlay.
+
+Phase 4 replaces the compact telemetry summaries with full explorers. Correlation controls update the active tool and a small, validated set of URL search parameters so a filtered investigation view is reproducible. These parameters never contain evidence notes, hypotheses, hidden scenario data, or credentials.

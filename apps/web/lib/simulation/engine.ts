@@ -3,11 +3,13 @@ import {
   evidenceCatalog,
   MAX_LOGS,
   MAX_METRICS,
+  MAX_TRACES,
   SIMULATION_INTERVAL_SECONDS,
   topology,
 } from "./scenario";
 import type {
   ActionId,
+  AlertActionId,
   Health,
   IncidentStage,
   LogEntry,
@@ -17,6 +19,12 @@ import type {
   SimulationState,
   TimelineEntry,
 } from "./types";
+import {
+  createTrace,
+  initialAlerts,
+  telemetryHex,
+  telemetryTimestamp,
+} from "./telemetry";
 
 function hash(text: string): number {
   let value = 2166136261;
@@ -119,12 +127,30 @@ function metricFor(state: SimulationState): MetricPoint {
   const recoveryFactor =
     state.stage === "Recovery" ? 0.35 : state.stage === "Completed" ? 0 : 1;
   const jitter = Math.round(noise(state.seed, state.tick, 99) * 22);
+  const dbPoolMax = 40 + state.modifiers.poolBonus;
+  const dbPoolUsed = Math.min(
+    dbPoolMax,
+    Math.round((8 + level * 7) * recoveryFactor),
+  );
   return {
     second: state.elapsedSeconds,
+    requestRate: 780 + jitter,
     orderLatencyMs: Math.max(
       80,
       Math.round(
         (95 + level * 480 - state.modifiers.latencyReduction) * recoveryFactor +
+          jitter,
+      ),
+    ),
+    latencyP50Ms: Math.max(
+      45,
+      Math.round((70 + level * 85) * recoveryFactor + jitter / 2),
+    ),
+    latencyP99Ms: Math.max(
+      110,
+      Math.round(
+        (130 + level * 620 - state.modifiers.latencyReduction) *
+          recoveryFactor +
           jitter,
       ),
     ),
@@ -138,14 +164,22 @@ function metricFor(state: SimulationState): MetricPoint {
             : 0.2) * recoveryFactor,
       ).toFixed(1),
     ),
-    dbPoolUsed: Math.min(
-      40 + state.modifiers.poolBonus,
-      Math.round((8 + level * 7) * recoveryFactor),
+    cpuPercent: Number(Math.min(92, 31 + level * 7 + jitter / 5).toFixed(1)),
+    memoryMb: Math.round(420 + level * 18 + jitter),
+    dbPoolUsed,
+    dbPoolMax,
+    dbPoolUtilizationPercent: Math.round((dbPoolUsed / dbPoolMax) * 100),
+    queueDepth: Math.max(
+      2,
+      Math.round(
+        12 + (state.modifiers.consumerPaused ? 18 + state.tick * 4 : level * 2),
+      ),
     ),
-    dbPoolMax: 40 + state.modifiers.poolBonus,
+    serviceRestarts: state.actions.filter(({ action }) => action === "restart")
+      .length,
   };
 }
-function logFor(state: SimulationState): LogEntry {
+function logsFor(state: SimulationState): LogEntry[] {
   const level = severity(state.stage);
   const messages =
     level >= 5
@@ -162,17 +196,47 @@ function logFor(state: SimulationState): LogEntry {
                   ? "order-service v2.14.7 deployment healthy"
                   : "request completed",
               ];
-  return {
-    id: `log-${state.tick}-${state.elapsedSeconds}`,
+  const traceId = telemetryHex(state.seed, state.tick, 32, 17);
+  const requestId = `req_sim_${telemetryHex(state.seed, state.tick, 12, 8)}`;
+  const primary: LogEntry = {
+    id: `log-${state.tick}-order`,
     second: state.elapsedSeconds,
+    timestamp: telemetryTimestamp(state.elapsedSeconds),
     level: messages[0] as LogEntry["level"],
     service: level >= 2 ? "order" : "gateway",
+    serviceName: level >= 2 ? "order-service" : "api-gateway",
+    traceId,
+    spanId: telemetryHex(state.seed, state.tick, 16, level >= 2 ? 3 : 1),
+    deploymentVersion: level >= 1 ? "2.14.7" : "2.14.6",
+    requestId,
     message: messages[1]!,
     fields: {
-      request_id: `sim-${state.seed.toString(16)}-${state.tick}`,
+      "service.name": level >= 2 ? "order-service" : "api-gateway",
+      "deployment.version": level >= 1 ? "2.14.7" : "2.14.6",
+      request_id: requestId,
       duration_ms: metricFor(state).orderLatencyMs,
+      "sentinelops.simulated": true,
     },
   };
+  const companion: LogEntry = {
+    ...primary,
+    id: `log-${state.tick}-gateway`,
+    level: level >= 5 ? "ERROR" : "INFO",
+    service: "gateway",
+    serviceName: "api-gateway",
+    spanId: telemetryHex(state.seed, state.tick, 16, 1),
+    message:
+      level >= 5
+        ? "checkout response returned upstream error"
+        : "checkout request routed",
+    fields: {
+      ...primary.fields,
+      "service.name": "api-gateway",
+      "http.route": "/checkout",
+      "http.response.status_code": level >= 5 ? 504 : 200,
+    },
+  };
+  return [primary, companion];
 }
 
 const systemEvents: Record<
@@ -238,6 +302,8 @@ function initialStateFromSeed(
     services: [],
     logs: [],
     metrics: [],
+    traces: [],
+    alerts: initialAlerts.map((alert) => ({ ...alert })),
     timeline: [{ id: "timeline-start", second: 0, ...systemEvents.Normal! }],
     collectedEvidence: [],
     hypotheses: [],
@@ -251,6 +317,12 @@ function initialStateFromSeed(
       latencyReduction: 0,
       errorReduction: 0,
       consumerPaused: false,
+    },
+    correlation: {
+      service: null,
+      traceId: null,
+      deploymentId: null,
+      timeRange: "15m",
     },
     announcement: "",
   };
@@ -274,12 +346,27 @@ export function advanceSimulation(state: SimulationState): SimulationState {
   const draft = { ...state, elapsedSeconds, tick, stage };
   const changed = stage !== state.stage;
   const event = changed ? systemEvents[stage] : undefined;
+  const metric = metricFor(draft);
+  const nextLogs = logsFor(draft);
+  const trace = createTrace(
+    state.seed,
+    tick,
+    elapsedSeconds,
+    metric.orderLatencyMs,
+    metric.checkoutErrorRate,
+  );
   const next: SimulationState = {
     ...draft,
     status: stage === "Completed" ? "completed" : state.status,
     services: servicesFor(draft),
-    metrics: [...state.metrics, metricFor(draft)].slice(-MAX_METRICS),
-    logs: [...state.logs, logFor(draft)].slice(-MAX_LOGS),
+    metrics: [...state.metrics, metric].slice(-MAX_METRICS),
+    logs: [...state.logs, ...nextLogs].slice(-MAX_LOGS),
+    traces: [...state.traces, trace].slice(-MAX_TRACES),
+    alerts: state.alerts.map((alert) =>
+      alert.firstTriggered <= elapsedSeconds
+        ? { ...alert, lastUpdated: elapsedSeconds }
+        : alert,
+    ),
     timeline: event
       ? [
           ...state.timeline,
@@ -358,6 +445,67 @@ function performAction(
       },
     ],
     announcement: `${definition.label} recorded. ${effect}`,
+  };
+}
+
+function updateAlert(
+  state: SimulationState,
+  alertId: string,
+  action: AlertActionId,
+): SimulationState {
+  const alert = state.alerts.find(({ id }) => id === alertId);
+  if (!alert || alert.firstTriggered > state.elapsedSeconds) return state;
+  const label =
+    action === "ack-alert"
+      ? "Acknowledge alert"
+      : action === "assign-alert"
+        ? "Assign alert to self"
+        : "Silence alert in simulation";
+  const effect =
+    action === "ack-alert"
+      ? `${alert.title} acknowledged; underlying telemetry remains active.`
+      : action === "assign-alert"
+        ? `${alert.title} assigned locally to the player.`
+        : `${alert.title} notifications silenced locally; evidence and telemetry are retained.`;
+  const id = `alert-action-${state.tick}-${state.actions.length + 1}`;
+  return {
+    ...state,
+    alerts: state.alerts.map((item) =>
+      item.id === alertId
+        ? {
+            ...item,
+            status:
+              action === "silence-alert"
+                ? "silenced"
+                : action === "ack-alert"
+                  ? "acknowledged"
+                  : item.status,
+            assignedTo: action === "assign-alert" ? "self" : item.assignedTo,
+          }
+        : item,
+    ),
+    actions: [
+      ...state.actions,
+      {
+        id,
+        action,
+        label,
+        second: state.elapsedSeconds,
+        risk: "Local alert workflow state only.",
+        effect,
+      },
+    ],
+    timeline: [
+      ...state.timeline,
+      {
+        id: `timeline-${id}`,
+        second: state.elapsedSeconds,
+        kind: "action",
+        title: label,
+        description: effect,
+      },
+    ],
+    announcement: effect,
   };
 }
 
@@ -448,6 +596,28 @@ export function simulationReducer(
       };
     case "PERFORM_ACTION":
       return performAction(state, event.action);
+    case "UPDATE_ALERT":
+      return updateAlert(state, event.alertId, event.action);
+    case "CORRELATE":
+      return {
+        ...state,
+        activeTool: event.tool,
+        correlation: {
+          service:
+            event.service === undefined
+              ? state.correlation.service
+              : event.service,
+          traceId:
+            event.traceId === undefined
+              ? state.correlation.traceId
+              : event.traceId,
+          deploymentId:
+            event.deploymentId === undefined
+              ? state.correlation.deploymentId
+              : event.deploymentId,
+          timeRange: event.timeRange ?? state.correlation.timeRange,
+        },
+      };
   }
 }
 

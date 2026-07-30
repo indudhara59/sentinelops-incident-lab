@@ -2,11 +2,11 @@
 
 SentinelOps Incident Lab is an independent educational project for learning incident response and observability through safe, fictional cloud scenarios. It never connects to, scans, modifies, or interferes with real infrastructure. It is not a penetration-testing platform.
 
-## Phase 3
+## Phase 4
 
-This repository provides the monorepo foundation, public Next.js site, production-conscious FastAPI service, scenario catalog and briefings, plus a client-side investigation workspace for **The Midnight Latency Incident**. Phase 3 adds deterministic telemetry, topology exploration, evidence collection, hypotheses, safe simulated actions, and replay controls.
+This repository provides the monorepo foundation, public Next.js site, production-conscious FastAPI service, scenario catalog and briefings, plus a client-side investigation workspace for **The Midnight Latency Incident**. Phase 4 adds professional simulated log, metric, trace, alert, and deployment explorers with reproducible cross-tool correlation and evidence collection.
 
-The simulation is entirely local. WebSockets, backend telemetry execution, persistence, authentication, scoring, reports, team mode, and scenario creation are not implemented.
+The deterministic simulation is entirely local and all measurements are labelled simulated. WebSockets, backend telemetry execution, persistence, authentication, scoring, reports, team mode, and scenario creation are not implemented.
 
 ## Structure
 
@@ -36,7 +36,11 @@ The web app runs at `http://localhost:3000`; API documentation is available at `
 
 ## Verification
 
-Run `pnpm verify`, or use the individual `lint:*`, `typecheck:*`, and `test:*` scripts. Run `pnpm --filter @sentinelops/web test:e2e` for the Chromium investigation flow. No secrets are required for Phase 3.
+Run `pnpm verify`, or use the individual `lint:*`, `typecheck:*`, and `test:*` scripts. Run `pnpm --filter @sentinelops/web test:e2e` for the Chromium investigation flow. No secrets are required for Phase 4.
+
+## Observability tools
+
+The workspace includes bounded OpenTelemetry-shaped logs, simulated service metrics with accessible tables, hierarchical traces, local alert workflows, and fictional deployment history. Correlation links preserve relevant service, trace, deployment, and time-window context in the URL. See [the telemetry model](docs/telemetry-model.md) for contracts and limits.
 
 ## Scenario authoring
 

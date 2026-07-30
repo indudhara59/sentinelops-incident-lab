@@ -1959,6 +1959,631 @@ select {
     transition: none;
   }
 }
+
+/* Phase 4 professional observability explorers */
+.explorer-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--ops-line);
+}
+.explorer-header > svg {
+  color: var(--emerald);
+}
+.explorer-header > div span {
+  color: var(--emerald);
+  font: 7px var(--font-mono);
+  letter-spacing: 0.12em;
+}
+.explorer-header h2 {
+  margin: 3px 0 0;
+  font-size: 15px;
+}
+.explorer-header > p {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-left: auto;
+  color: var(--ops-muted);
+  font: 7px var(--font-mono);
+}
+.explorer-header > p b {
+  padding: 4px 5px;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+}
+.explorer-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 10px;
+  border: 1px solid var(--ops-line);
+  background: var(--ops-panel);
+}
+.explorer-controls label {
+  display: grid;
+  gap: 4px;
+  min-width: 115px;
+  color: var(--ops-muted);
+  font: 7px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.explorer-controls input,
+.explorer-controls select {
+  height: 31px;
+  padding: 0 8px;
+  border: 1px solid var(--ops-line);
+  background: var(--ops-raised);
+  color: var(--ops-text);
+  font: 9px var(--font-sans);
+  text-transform: none;
+}
+.explorer-controls button,
+.log-details button,
+.waterfall button,
+.alert-center button,
+.deployment-history button,
+.professional-chart header button,
+.metric-annotations button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 31px;
+  padding: 0 9px;
+  border: 1px solid var(--ops-line);
+  border-radius: 2px;
+  background: var(--ops-raised);
+  color: var(--ops-text);
+  cursor: pointer;
+  font-size: 8px;
+}
+.explorer button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.telemetry-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 120px;
+  border: 1px dashed var(--ops-line);
+  color: var(--ops-muted);
+}
+.telemetry-empty svg {
+  color: var(--emerald);
+}
+.structured-logs {
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid var(--ops-line);
+}
+.structured-log {
+  border-bottom: 1px solid var(--ops-line);
+  border-left: 2px solid var(--cyan);
+  background: #081314;
+}
+.structured-log.warn {
+  border-left-color: var(--amber);
+}
+.structured-log.error {
+  border-left-color: var(--red);
+}
+.structured-log > button {
+  display: grid;
+  grid-template-columns: 58px 42px 90px 65px 1fr 14px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 9px;
+  border: 0;
+  background: transparent;
+  color: var(--ops-text);
+  cursor: pointer;
+  text-align: left;
+}
+.structured-log time,
+.structured-log code {
+  color: var(--ops-muted);
+  font: 7px var(--font-mono);
+}
+.structured-log b {
+  color: var(--cyan);
+  font: 7px var(--font-mono);
+}
+.structured-log.warn b {
+  color: var(--amber);
+}
+.structured-log.error b {
+  color: var(--red);
+}
+.structured-log span {
+  overflow: hidden;
+  color: var(--ops-muted);
+  font: 8px var(--font-mono);
+  text-overflow: ellipsis;
+}
+.structured-log strong {
+  overflow: hidden;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.log-details {
+  padding: 12px;
+  border-top: 1px solid var(--ops-line);
+  background: var(--ops-raised);
+}
+.log-details dl,
+.deployment-history dl,
+.alert-center dl,
+.waterfall details dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  margin: 0 0 10px;
+}
+.log-details dl > div,
+.deployment-history dl > div,
+.alert-center dl > div,
+.waterfall details dl > div {
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid var(--ops-line);
+}
+.log-details dt,
+.deployment-history dt,
+.alert-center dt,
+.waterfall details dt {
+  color: var(--ops-muted);
+  font: 6px var(--font-mono);
+}
+.log-details dd,
+.deployment-history dd,
+.alert-center dd,
+.waterfall details dd {
+  overflow-wrap: anywhere;
+  margin: 3px 0 0;
+  font: 7px var(--font-mono);
+}
+.log-details > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.metric-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+.metric-summary span {
+  padding: 6px 8px;
+  border: 1px solid var(--ops-line);
+  color: var(--ops-muted);
+  font: 7px var(--font-mono);
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.professional-chart {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--ops-line);
+  background: var(--ops-panel);
+}
+.professional-chart header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.professional-chart header span,
+.professional-chart header strong {
+  display: block;
+}
+.professional-chart header span {
+  color: var(--ops-muted);
+  font: 7px var(--font-mono);
+  text-transform: uppercase;
+}
+.professional-chart header strong {
+  margin-top: 4px;
+  font-size: 12px;
+}
+.chart-plot {
+  position: relative;
+  display: flex;
+  align-items: end;
+  gap: 3px;
+  height: 90px;
+  margin-top: 9px;
+  border-bottom: 1px solid var(--ops-line);
+}
+.chart-plot > button {
+  flex: 1;
+  min-width: 3px;
+  max-width: 16px;
+  padding: 0;
+  border: 0;
+  background: var(--cyan);
+  cursor: crosshair;
+}
+.chart-plot > button.cursor,
+.chart-plot > button:focus-visible {
+  background: var(--emerald);
+  outline: 1px solid var(--emerald);
+}
+.chart-threshold {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  border-top: 1px dashed var(--red);
+  pointer-events: none;
+}
+.chart-deployment {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 12%;
+  border-left: 1px dashed var(--amber);
+  pointer-events: none;
+}
+.metric-annotations {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  color: var(--ops-muted);
+  font: 7px var(--font-mono);
+}
+.metric-annotations i {
+  display: inline-block;
+  width: 12px;
+  margin-right: 5px;
+  border-top: 1px dashed var(--amber);
+}
+.metric-annotations i.threshold-marker {
+  border-color: var(--red);
+}
+.metric-annotations button {
+  margin-left: auto;
+}
+.accessible-table {
+  max-width: 100%;
+  max-height: 330px;
+  overflow: auto;
+  border: 1px solid var(--ops-line);
+}
+.accessible-table table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+.accessible-table caption {
+  padding: 8px;
+  color: var(--ops-muted);
+  text-align: left;
+}
+.accessible-table th,
+.accessible-table td {
+  padding: 7px;
+  border: 1px solid var(--ops-line);
+  font-size: 7px;
+  text-align: left;
+}
+.accessible-table th {
+  position: sticky;
+  top: 0;
+  background: var(--ops-raised);
+  color: var(--emerald);
+}
+.trace-layout {
+  display: grid;
+  grid-template-columns: 195px minmax(0, 1fr);
+  gap: 8px;
+}
+.trace-list {
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid var(--ops-line);
+}
+.trace-list button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px;
+  width: 100%;
+  padding: 9px;
+  border: 0;
+  border-bottom: 1px solid var(--ops-line);
+  background: var(--ops-panel);
+  color: var(--ops-muted);
+  text-align: left;
+}
+.trace-list button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--emerald), transparent 90%);
+}
+.trace-list code {
+  font: 7px var(--font-mono);
+}
+.trace-list span {
+  font-size: 8px;
+}
+.trace-list b {
+  color: var(--emerald);
+  font: 6px var(--font-mono);
+}
+.trace-list b.error {
+  color: var(--red);
+}
+.trace-list strong {
+  color: var(--ops-text);
+  font: 8px var(--font-mono);
+}
+.waterfall {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--ops-line);
+  background: var(--ops-panel);
+}
+.waterfall > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.waterfall > header code,
+.waterfall > header strong {
+  display: block;
+}
+.waterfall > header code {
+  color: var(--ops-muted);
+  font-size: 7px;
+}
+.waterfall > header strong {
+  margin-top: 3px;
+  font-size: 8px;
+}
+.critical-legend {
+  overflow: hidden;
+  color: var(--amber);
+  font: 7px var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.waterfall-span {
+  position: relative;
+  margin-top: 5px;
+}
+.waterfall-span > button {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 55px 1fr 48px;
+  width: calc(100% - 5px);
+  min-height: 29px;
+  border: 1px solid var(--ops-line);
+  background: #0a1516;
+  text-align: left;
+}
+.waterfall-span > button span {
+  color: var(--ops-muted);
+}
+.waterfall-span > button small {
+  text-align: right;
+}
+.waterfall-span > i {
+  position: absolute;
+  bottom: 1px;
+  z-index: 3;
+  height: 3px;
+  background: var(--cyan);
+  pointer-events: none;
+}
+.waterfall-span.critical > i {
+  background: var(--amber);
+}
+.waterfall-span details {
+  margin-left: 10px;
+  padding: 6px;
+  border-left: 1px solid var(--ops-line);
+}
+.waterfall-span summary {
+  cursor: pointer;
+  color: var(--ops-muted);
+  font-size: 7px;
+}
+.waterfall-span details button {
+  margin-right: 5px;
+}
+.alert-center {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.alert-center > article {
+  padding: 12px;
+  border: 1px solid var(--ops-line);
+  background: var(--ops-panel);
+}
+.alert-center header {
+  display: flex;
+  justify-content: space-between;
+}
+.alert-severity,
+.alert-state,
+.deployment-status {
+  padding: 4px 5px;
+  border: 1px solid currentColor;
+  color: var(--amber);
+  font: 6px var(--font-mono);
+  text-transform: uppercase;
+}
+.alert-severity.critical {
+  color: var(--red);
+}
+.alert-state {
+  color: var(--cyan);
+}
+.alert-state.silenced {
+  color: var(--ops-muted);
+}
+.alert-center h3 {
+  margin: 10px 0 3px;
+  font-size: 11px;
+}
+.alert-center > article > p {
+  color: var(--ops-muted);
+  font-size: 8px;
+}
+.alert-center > article > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.alert-event-timeline {
+  margin-top: 14px;
+}
+.alert-event-timeline p,
+.action-history p {
+  display: grid;
+  grid-template-columns: 52px 140px 1fr;
+  gap: 8px;
+  padding: 7px 0;
+  border-top: 1px solid var(--ops-line);
+  color: var(--ops-muted);
+  font-size: 7px;
+}
+.alert-event-timeline time {
+  color: var(--emerald);
+}
+.deployment-history {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.deployment-history > article {
+  padding: 13px;
+  border: 1px solid var(--ops-line);
+  background: var(--ops-panel);
+}
+.deployment-history > article.selected {
+  border-color: var(--cyan);
+  box-shadow: inset 0 0 0 1px var(--cyan);
+}
+.deployment-history header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.deployment-status.completed {
+  color: var(--emerald);
+}
+.deployment-history time {
+  color: var(--ops-muted);
+  font: 7px var(--font-mono);
+}
+.deployment-history h3 {
+  font-size: 12px;
+}
+.deployment-history h3 b {
+  color: var(--emerald);
+  font-family: var(--font-mono);
+}
+.deployment-history > article > p {
+  min-height: 30px;
+  color: var(--ops-muted);
+  font-size: 8px;
+}
+.deployment-history summary {
+  cursor: pointer;
+  color: var(--cyan);
+  font-size: 8px;
+}
+.deployment-history li {
+  color: var(--ops-muted);
+  font-size: 8px;
+}
+.deployment-history > article > div {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.timeline-link {
+  margin-top: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--cyan);
+  cursor: pointer;
+  font-size: 7px;
+}
+@media (max-width: 900px) {
+  .dashboard-grid,
+  .alert-center,
+  .deployment-history {
+    grid-template-columns: 1fr;
+  }
+  .trace-layout {
+    grid-template-columns: 1fr;
+  }
+  .trace-list {
+    display: flex;
+    max-height: 110px;
+  }
+  .trace-list button {
+    min-width: 150px;
+  }
+  .explorer-controls label {
+    min-width: 100px;
+  }
+}
+@media (max-width: 620px) {
+  .structured-log > button {
+    grid-template-columns: 48px 38px 1fr 12px;
+  }
+  .structured-log code,
+  .structured-log > button > span {
+    display: none;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .log-details dl,
+  .alert-center dl,
+  .deployment-history dl {
+    grid-template-columns: 1fr;
+  }
+  .explorer-header > p {
+    display: none;
+  }
+  .explorer-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .explorer-controls > button {
+    align-self: end;
+  }
+  .professional-chart {
+    min-width: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chart-plot > button,
+  .structured-log,
+  .waterfall-span > i {
+    transition: none !important;
+    animation: none !important;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

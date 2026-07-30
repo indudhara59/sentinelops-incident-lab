@@ -3,6 +3,7 @@ import type { ActionId, EvidenceDefinition } from "./types";
 export const SIMULATION_INTERVAL_SECONDS = 30;
 export const MAX_LOGS = 100;
 export const MAX_METRICS = 120;
+export const MAX_TRACES = 60;
 
 export const topology = [
   {

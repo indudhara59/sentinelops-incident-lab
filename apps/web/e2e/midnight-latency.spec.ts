@@ -15,7 +15,27 @@ test("investigates the midnight latency scenario locally", async ({ page }) => {
     await page.getByRole("button", { name: "Advance interval" }).click();
   await page.getByRole("button", { name: /Order service,/i }).click();
   await page.getByRole("button", { name: /Open filtered metrics/i }).click();
-  await page.getByRole("button", { name: "Collect evidence" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Metrics dashboards" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Add visible range as evidence" })
+    .click();
+  await page.getByRole("tab", { name: "Logs" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Log explorer" }),
+  ).toBeVisible();
+  await page.locator(".structured-log > button").first().click();
+  await page.getByRole("button", { name: "Add log as evidence" }).click();
+  await page.getByRole("button", { name: "Open trace" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Trace explorer" }),
+  ).toBeVisible();
+  await page.getByText("Span attributes").first().click();
+  await page
+    .getByRole("button", { name: "Add span as evidence" })
+    .first()
+    .click();
   await page.getByRole("tab", { name: "Evidence" }).click();
   await page
     .getByPlaceholder("What might explain the impact?")
