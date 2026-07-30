@@ -1,11 +1,7 @@
 "use client";
 
 import { actionDefinitions } from "@/lib/simulation/scenario";
-import {
-  availableEvidence,
-  canRevealConclusion,
-  playerVisibleStage,
-} from "@/lib/simulation/engine";
+import { availableEvidence, playerVisibleStage } from "@/lib/simulation/engine";
 import type {
   ActionId,
   EvidenceDefinition,
@@ -23,6 +19,7 @@ import {
   MetricsExplorer,
   TraceExplorer,
 } from "./telemetry-explorers";
+import { CompletionPanel } from "./completion-panel";
 import {
   Activity,
   AlertTriangle,
@@ -66,6 +63,7 @@ const tools: { id: ToolId; label: string; icon: typeof Activity }[] = [
   { id: "evidence", label: "Evidence", icon: BookMarked },
   { id: "actions", label: "Actions", icon: ShieldCheck },
   { id: "notes", label: "Notes", icon: NotebookPen },
+  { id: "completion", label: "Complete", icon: ShieldCheck },
 ];
 
 export function OperationsWorkspace({
@@ -591,6 +589,8 @@ function ToolPanel({
         </label>
       </div>
     );
+  if (state.activeTool === "completion")
+    return <CompletionPanel state={state} dispatch={dispatch} />;
   if (state.activeTool === "logs")
     return <LogExplorer state={state} dispatch={dispatch} />;
   if (state.activeTool === "metrics")
@@ -686,19 +686,6 @@ function Overview({
         </div>
       </div>
       <Timeline state={state} dispatch={dispatch} />
-      {canRevealConclusion(state) && (
-        <div className="conclusion">
-          <ShieldCheck size={18} />
-          <div>
-            <strong>Evidence threshold reached</strong>
-            <p>
-              Your evidence supports investigating whether order-service version
-              2.14.7 fails to release database connections. Continue to validate
-              before concluding.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

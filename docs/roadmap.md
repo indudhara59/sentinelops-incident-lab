@@ -20,6 +20,10 @@ Bounded log streaming and filters, service metric dashboards, trace waterfalls, 
 
 Allowlisted FastAPI scenario execution, ephemeral bounded sessions, validated commands, per-session locking and idempotency, versioned WebSocket batches, polling fallback, snapshot resynchronization, client connection state, and API-backed browser verification.
 
+## Phase 6 — Completion and post-incident learning (complete)
+
+Evidence-linked root-cause submission, recovery verification over a stable signal window, transparent ten-category scoring, deterministic structured reports, versioned local replay, JSON/CSV export, and print styling.
+
 ## Later phases (not started)
 
 Potential persistence, authentication, scoring, post-incident reports, team mode, custom scenario creation, and deployment. These are not available and no dates are promised.

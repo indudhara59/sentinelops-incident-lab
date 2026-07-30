@@ -26,6 +26,8 @@ This data powers the client-side catalog and briefing. Wording must not imply a 
 
 Never import the private module from a Client Component or serialize it into page props. Phase 2 stores these definitions for future facilitator logic but does not execute or display them.
 
+Phase 6 also defines an equivalent backend-only `TruthModel` in the allowlisted FastAPI registry for authoritative completion and scoring. API scenario responses and pre-completion snapshots serialize only the public model and player-recorded state; they never serialize this truth object.
+
 ## Status values
 
 - `ready` — briefing can create a temporary local handoff to the Phase 3 placeholder.

@@ -8,8 +8,10 @@ The product lifecycle is deliberately divided into stages so a page never claims
 4. **Start ephemerally** — request a cryptographically identified in-memory FastAPI session and keep only its reference in the current tab.
 5. **Investigate** — render authoritative snapshots and batched events, collect evidence, build hypotheses, and record safe simulated actions.
 6. **Mitigate and verify** — observe deterministic recovery after an appropriate simulated action.
+7. **Conclude** — submit affected service, mechanism, trigger, evidence, rejected alternatives, mitigation, and confidence.
+8. **Report** — verify recovery, document the incident, review the scoring rationale, export, print, or replay locally.
 
-Phase 5 supports investigation, mitigation, and verification for one ready scenario. Sessions expire and are deleted without durable history. It does not authenticate users, compute scores, or produce reports.
+Phase 6 supports investigation through post-incident report for one ready scenario. Sessions and reports expire without durable history. It does not authenticate users or assess employment suitability.
 
 ## Incident commander checklist
 

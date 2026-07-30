@@ -2,7 +2,7 @@
 
 SentinelOps Incident Lab is safe by construction: all organizations, services, alerts, data, commands, and outcomes are fictional. The project never connects to, scans, modifies, or interferes with real infrastructure and is not a penetration-testing platform.
 
-## Phase 5 controls
+## Phase 6 controls
 
 - Scenario content uses invented organizations and environments.
 - The authentication scenario is limited to defensive analysis of simulated signals.
@@ -18,6 +18,10 @@ SentinelOps Incident Lab is safe by construction: all organizations, services, a
 - Correlation search parameters are allow-listed investigation context, not telemetry or session persistence.
 - Reset reproduces the same seed, and all runtime histories are bounded in memory.
 - REST and WebSocket failures expose structured codes and request IDs without stack traces or hidden scenario material.
+- The backend-only truth model is absent from scenarios, snapshots, telemetry, and incomplete-session responses.
+- Scores and explanations are generated only after evidence, recovery, and documentation gates pass.
+- Report text uses deterministic templates and no paid or external AI API.
+- CSV export prefixes spreadsheet-formula-leading cells; filenames and media types are fixed safely.
 
 ## Contributor rule
 

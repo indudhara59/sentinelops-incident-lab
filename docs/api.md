@@ -10,6 +10,8 @@ FastAPI serves the authoritative ephemeral simulation under `/api/v1`. Developme
 - `POST /sessions/{id}/actions` accepts only fixed safe action identifiers.
 - `POST /sessions/{id}/evidence`, `POST /sessions/{id}/hypotheses`, and `PATCH /sessions/{id}/hypotheses/{hypothesisId}` update bounded investigation state.
 - `WS /sessions/{id}/stream?after={sequence}` delivers a snapshot and subsequent batches.
+- `POST /sessions/{id}/root-cause`, `/recovery/verify`, and `/complete` enforce the Phase 6 gates.
+- `GET /sessions/{id}/report`, `/report.json`, and `/timeline.csv` expose a completed ephemeral report and safe exports.
 
 State-changing requests accept an `Idempotency-Key` of at most 128 characters. Clients should generate a new key per user intent and reuse it only when retrying that intent. Errors use `{error: {code, message, details, request_id}}`; `X-Request-ID` is echoed when valid.
 

@@ -6,4 +6,4 @@ Phase 3 sources are Logs, Metrics, Traces, Deployments, and Alerts. Items become
 
 Hypotheses have a title, notes, attached evidence IDs, and one player-controlled state: unresolved, supported, or contradicted. The engine never automatically marks a hypothesis correct or wrong. A cautious root-cause prompt appears only after the configured evidence threshold is met or the incident is completed; it still asks the player to validate the conclusion.
 
-Evidence, hypotheses, and notes remain in React memory for the current tab and are cleared by reset or abandonment. No report or permanent history is produced.
+Authoritative evidence and hypotheses remain in the ephemeral FastAPI session. Phase 6 requires at least three root-cause evidence links spanning two sources and at least two recovery evidence links. A collected item is never labelled correct or incorrect; the final rubric assesses diversity, support, and relationship to the conclusion. No permanent history is produced.

@@ -1,4 +1,4 @@
-# Phase 5 architecture
+# Phase 6 architecture
 
 The repository separates the public experience, API boundary, and shared contracts so later simulation capabilities can evolve without coupling UI rendering to backend internals.
 
@@ -13,7 +13,9 @@ FastAPI is authoritative for the scenario seed, simulation clock, lifecycle stat
 
 The browser is a responsive projection. It keeps view-only selection and correlation state, applies authoritative snapshots, ignores duplicate sequences, and resynchronizes after gaps or reconnects. WebSocket messages batch state and telemetry. Controlled snapshot polling is the transport fallback; telemetry is never fetched item by item. A local reducer remains only as a labelled educational fallback.
 
-The service is intentionally single-process and ephemeral. There is no database, authentication, durable history, team synchronization, scoring system, or real-infrastructure integration.
+The service is intentionally single-process and ephemeral. There is no database, authentication, durable history, team synchronization, or real-infrastructure integration.
+
+Phase 6 adds a backend-only truth model beside each allowlisted engine. Snapshots never serialize it. Once evidence, conclusion, mitigation, stable recovery, and documentation gates pass, a pure report generator compares the recorded submission with that truth and stores the resulting report in the same ephemeral session. No external AI service participates.
 
 ## Security boundaries
 

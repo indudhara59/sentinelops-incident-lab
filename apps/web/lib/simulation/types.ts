@@ -20,7 +20,8 @@ export type ToolId =
   | "deployments"
   | "evidence"
   | "actions"
-  | "notes";
+  | "notes"
+  | "completion";
 export type Health = "healthy" | "degraded" | "critical" | "recovering";
 export type EvidenceSource =
   "Logs" | "Metrics" | "Traces" | "Deployments" | "Alerts";
@@ -195,6 +196,34 @@ export interface SimulationState {
   modifiers: SimulationModifiers;
   correlation: CorrelationContext;
   announcement: string;
+  rootCauseSubmission: RootCauseSubmission | null;
+  recoveryVerification: RecoveryVerification | null;
+  completionDocumentation: CompletionDocumentation | null;
+  investigationCompleted: boolean;
+}
+
+export interface RootCauseSubmission {
+  affected_service: string;
+  failure_mechanism: string;
+  triggering_change: string;
+  supporting_evidence: string[];
+  rejected_alternatives: string[];
+  proposed_mitigation: string;
+  confidence: number;
+}
+
+export interface RecoveryVerification {
+  verified: boolean;
+  checks: Record<string, boolean>;
+  evidenceIds: string[];
+  observation: string;
+}
+
+export interface CompletionDocumentation {
+  incident_summary: string;
+  customer_impact: string;
+  lessons_learned: string[];
+  follow_up_actions: string[];
 }
 
 export type SimulationEvent =
@@ -219,6 +248,13 @@ export type SimulationEvent =
   | { type: "SET_NOTES"; notes: string }
   | { type: "PERFORM_ACTION"; action: ActionId }
   | { type: "UPDATE_ALERT"; alertId: string; action: AlertActionId }
+  | { type: "SUBMIT_ROOT_CAUSE"; submission: RootCauseSubmission }
+  | {
+      type: "VERIFY_RECOVERY";
+      evidenceIds: string[];
+      observation: string;
+    }
+  | { type: "COMPLETE_INCIDENT"; documentation: CompletionDocumentation }
   | {
       type: "CORRELATE";
       tool: ToolId;

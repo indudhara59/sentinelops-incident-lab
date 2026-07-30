@@ -2,11 +2,11 @@
 
 SentinelOps Incident Lab is an independent educational project for learning incident response and observability through safe, fictional cloud scenarios. It never connects to, scans, modifies, or interferes with real infrastructure. It is not a penetration-testing platform.
 
-## Phase 5
+## Phase 6
 
-This repository provides the scenario catalog, briefings, and investigation workspace for **The Midnight Latency Incident**. Phase 5 moves authoritative, deterministic execution into FastAPI and delivers versioned telemetry batches and snapshots over WebSockets with bounded polling fallback.
+This repository provides the scenario catalog, briefings, investigation workspace, and evidence-based post-incident workflow for **The Midnight Latency Incident**. Phase 6 adds structured root-cause submission, server-verified recovery, deterministic scoring, reports, replay manifests, and safe exports.
 
-Sessions are ephemeral server memory and all measurements are labelled simulated. The workspace can use an explicitly labelled local educational fallback when the development API is unavailable. MongoDB, authentication, persistent history, scoring, reports, team mode, and scenario creation are not implemented.
+Sessions and reports are ephemeral server memory and all measurements are labelled simulated. The workspace can use an explicitly labelled local educational fallback when the development API is unavailable, but authoritative completion requires the API. MongoDB, authentication, persistent history, team mode, and scenario creation are not implemented.
 
 ## Structure
 
@@ -36,9 +36,13 @@ The web app runs at `http://localhost:3000`; API documentation is available at `
 
 ## Verification
 
-Run `pnpm verify`, or use the individual `lint:*`, `typecheck:*`, and `test:*` scripts. Run `pnpm --filter @sentinelops/web test:e2e` for the API-backed Chromium investigation flow. No secrets are required for Phase 5.
+Run `pnpm verify`, or use the individual `lint:*`, `typecheck:*`, and `test:*` scripts. Run `pnpm --filter @sentinelops/web test:e2e` for the API-backed Chromium investigation and report flow. No secrets or paid AI APIs are required for Phase 6.
 
 FastAPI publishes interactive OpenAPI documentation at `http://localhost:8000/docs` outside production. Its generated schema is validated in the backend tests. See [API documentation](docs/api.md), [the real-time protocol](docs/realtime-protocol.md), and [operational limits](docs/operational-limits.md).
+
+## Completion and reports
+
+The Complete tool requires a structured conclusion with at least three linked evidence items across two sources. Recovery is verified from latency, error rate, connection-pool usage, successful checkout traces, and a stable observation window. Reports are deterministic templates derived from recorded session state—not an official SRE certification or employment assessment. See [scoring](docs/scoring.md) and [reports](docs/reports.md).
 
 ## Observability tools
 

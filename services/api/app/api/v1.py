@@ -2,20 +2,31 @@ import asyncio
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, Response, WebSocket, WebSocketDisconnect
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 
 from app.config import Settings, get_settings
 from app.simulation.engine import advance
 from app.simulation.models import (
     ActionRequest,
+    CompletionRequest,
     CreateSessionRequest,
     EvidenceRequest,
     HypothesisPatch,
     HypothesisRequest,
+    RecoveryVerificationRequest,
+    RootCauseSubmission,
     ScenarioSummary,
     SessionResponse,
 )
 from app.simulation.registry import get_scenario, list_scenarios
+from app.simulation.reporting import (
+    complete_incident,
+    record_root_cause,
+    safe_filename,
+    timeline_csv,
+    verify_recovery,
+)
 from app.simulation.store import Session, StoreError, action_callback, store
 
 router = APIRouter(prefix="/api/v1", tags=["status"])
@@ -224,6 +235,96 @@ async def patch_hypothesis(
 
     return await _state_change(
         session_id, f"hypothesis-patch:{hypothesis_id}", patch, idempotency_key
+    )
+
+
+@router.post("/sessions/{session_id}/root-cause", tags=["completion"])
+async def submit_root_cause(
+    session_id: str,
+    body: RootCauseSubmission,
+    idempotency_key: Annotated[str | None, Header(max_length=128)] = None,
+) -> dict[str, Any]:
+    return await _state_change(
+        session_id,
+        "root-cause",
+        lambda state: record_root_cause(state, body),
+        idempotency_key,
+    )
+
+
+@router.post("/sessions/{session_id}/recovery/verify", tags=["completion"])
+async def submit_recovery_verification(
+    session_id: str,
+    body: RecoveryVerificationRequest,
+    idempotency_key: Annotated[str | None, Header(max_length=128)] = None,
+) -> dict[str, Any]:
+    return await _state_change(
+        session_id,
+        "recovery-verification",
+        lambda state: verify_recovery(state, body),
+        idempotency_key,
+    )
+
+
+@router.post("/sessions/{session_id}/complete", tags=["completion"])
+async def complete_session(
+    session_id: str,
+    body: CompletionRequest,
+    idempotency_key: Annotated[str | None, Header(max_length=128)] = None,
+) -> dict[str, Any]:
+    session = await store.get(session_id)
+    return await store.mutate(
+        session,
+        idempotency_key=idempotency_key,
+        operation="complete",
+        callback=lambda state: complete_incident(
+            {**state, "sessionId": session_id}, session.scenario, body
+        ),
+    )
+
+
+async def _report(session_id: str) -> dict[str, Any]:
+    session = await store.get(session_id)
+    report = session.state.get("report")
+    if not report or not session.state.get("investigationCompleted"):
+        raise StoreError(
+            "REPORT_NOT_READY",
+            "Complete the evidence-linked investigation and verify recovery first.",
+            409,
+        )
+    return report
+
+
+@router.get("/sessions/{session_id}/report", tags=["completion"])
+async def session_report(session_id: str) -> dict[str, Any]:
+    return await _report(session_id)
+
+
+@router.get("/sessions/{session_id}/report.json", tags=["completion"])
+async def export_report_json(session_id: str) -> JSONResponse:
+    report = await _report(session_id)
+    return JSONResponse(
+        report,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="{safe_filename(session_id, "report.json")}"'
+            )
+        },
+    )
+
+
+@router.get("/sessions/{session_id}/timeline.csv", tags=["completion"])
+async def export_timeline_csv(session_id: str) -> PlainTextResponse:
+    report = await _report(session_id)
+    return PlainTextResponse(
+        timeline_csv(report),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="{safe_filename(session_id, "timeline.csv")}"'
+            )
+        },
     )
 
 

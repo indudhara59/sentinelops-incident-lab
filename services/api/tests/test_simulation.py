@@ -179,3 +179,7 @@ def test_generated_openapi_documents_phase_five_routes() -> None:
     assert "/api/v1/sessions" in paths
     assert "/api/v1/sessions/{session_id}/snapshot" in paths
     assert "/api/v1/sessions/{session_id}/hypotheses/{hypothesis_id}" in paths
+    assert "/api/v1/sessions/{session_id}/root-cause" in paths
+    assert "/api/v1/sessions/{session_id}/recovery/verify" in paths
+    assert "/api/v1/sessions/{session_id}/complete" in paths
+    assert "/api/v1/sessions/{session_id}/report" in paths

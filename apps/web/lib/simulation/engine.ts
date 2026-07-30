@@ -287,7 +287,7 @@ const systemEvents: Record<
   },
 };
 
-function initialStateFromSeed(
+export function initialStateFromSeed(
   scenarioId: string,
   seed: number,
 ): SimulationState {
@@ -325,6 +325,10 @@ function initialStateFromSeed(
       timeRange: "15m",
     },
     announcement: "",
+    rootCauseSubmission: null,
+    recoveryVerification: null,
+    completionDocumentation: null,
+    investigationCompleted: false,
   };
   return { ...base, services: servicesFor(base), metrics: [metricFor(base)] };
 }
@@ -522,6 +526,10 @@ export function simulationReducer(
         activeTool: state.activeTool,
         correlation: state.correlation,
       };
+    case "SUBMIT_ROOT_CAUSE":
+    case "VERIFY_RECOVERY":
+    case "COMPLETE_INCIDENT":
+      return state;
     case "START":
       return state.status === "ready" ? { ...state, status: "running" } : state;
     case "PAUSE":
@@ -635,16 +643,7 @@ export function availableEvidence(state: SimulationState) {
   );
 }
 export function canRevealConclusion(state: SimulationState): boolean {
-  const ids = new Set(state.collectedEvidence.map(({ id }) => id));
-  return (
-    state.stage === "Completed" ||
-    [
-      "ev-deploy-2147",
-      "ev-metric-pool",
-      "ev-log-timeout",
-      "ev-trace-wait",
-    ].every((id) => ids.has(id))
-  );
+  return state.investigationCompleted;
 }
 
 export function playerVisibleStage(state: SimulationState): string {

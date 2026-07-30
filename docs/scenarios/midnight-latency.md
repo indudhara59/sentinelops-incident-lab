@@ -14,4 +14,8 @@ Deployment history establishes recent change context. Metrics show stable reques
 
 Rollback deterministically begins mitigation and leads to recovery. Restarting, scaling, raising the pool, disabling retries, pausing the consumer, and observing each have explicit local effects and risks. Only impactful actions require confirmation. No control executes an operational command.
 
-The root-cause conclusion is withheld until the configured evidence set is collected or the simulation reaches completion.
+The root-cause conclusion is withheld until the evidence-linked investigation, recovery verification, and report completion gates all pass.
+
+## Phase 6 completion
+
+The player submits a structured conclusion without receiving correctness feedback, links at least three evidence items across two sources, and records rejected alternatives. After rollback, FastAPI requires three stable metric intervals, normalized latency/errors/pool usage, and a successful checkout trace. Only then can documentation produce the deterministic report and reveal the backend-only truth and rubric.

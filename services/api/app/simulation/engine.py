@@ -12,6 +12,7 @@ MAX_METRICS = 120
 MAX_TRACES = 60
 MAX_EVENTS = 160
 MAX_ACTIONS = 100
+ENGINE_VERSION = "sentinelops-engine@1.0.0"
 
 
 def _hash(seed: int, tick: int, salt: int) -> int:
@@ -94,6 +95,11 @@ def initial_state(scenario: ScenarioDefinition, seed: int) -> dict[str, Any]:
         "collectedEvidence": [],
         "hypotheses": [],
         "actions": [],
+        "rootCauseSubmission": None,
+        "recoveryVerification": None,
+        "completionDocumentation": None,
+        "report": None,
+        "investigationCompleted": False,
         "mitigationAt": None,
         "modifiers": {"poolBonus": 0, "latencyReduction": 0, "errorReduction": 0},
     }
@@ -109,6 +115,8 @@ def _metric(
 ) -> dict[str, Any]:
     level = _severity(stage)
     jitter = _hash(seed, tick, 99) % 23
+    restart_times = [item["second"] for item in actions if item["action"] == "restart"]
+    restart_relief = 120 if restart_times and second - max(restart_times) <= 60 else 0
     recovery = 0 if stage == "Completed" else 0.35 if stage == "Recovery" else 1
     pool_max = 40 + modifiers.get("poolBonus", 0)
     pool_used = min(pool_max, round((8 + level * 7) * recovery))
@@ -116,7 +124,12 @@ def _metric(
         "second": second,
         "requestRate": 780 + jitter,
         "orderLatencyMs": max(
-            80, round((95 + level * 480 - modifiers.get("latencyReduction", 0)) * recovery + jitter)
+            80,
+            round(
+                (95 + level * 480 - modifiers.get("latencyReduction", 0) - restart_relief)
+                * recovery
+                + jitter
+            ),
         ),
         "latencyP50Ms": max(45, round((70 + level * 85) * recovery + jitter / 2)),
         "latencyP99Ms": max(110, round((130 + level * 620) * recovery + jitter)),
@@ -356,7 +369,6 @@ def perform_action(
         result["modifiers"]["latencyReduction"] += 180
         effect = "Additional order-service capacity temporarily lowers latency."
     elif action == "restart":
-        result["modifiers"]["latencyReduction"] += 120
         effect = "An order-service instance restarts; symptoms ease briefly."
     elif action == "disable-retry":
         result["modifiers"]["errorReduction"] += 2

@@ -1073,6 +1073,245 @@ select {
   color: var(--red);
   font-size: 9px;
 }
+.completion-workspace {
+  display: grid;
+  gap: 16px;
+}
+.completion-workspace > header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.completion-workspace > header span {
+  color: var(--cyan);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+.completion-workspace > header h2,
+.completion-workspace > header p {
+  margin: 4px 0 0;
+}
+.completion-workspace > header p {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.6;
+}
+.completion-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.completion-card h3,
+.completion-card p {
+  margin: 0;
+}
+.completion-card label,
+.completion-evidence legend {
+  color: var(--muted);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+}
+.completion-card select,
+.completion-card textarea,
+.completion-card input[type="range"] {
+  width: 100%;
+  margin-top: 5px;
+}
+.completion-card textarea {
+  min-height: 70px;
+}
+.completion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.completion-evidence {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+}
+.completion-evidence label {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  letter-spacing: 0;
+}
+.completion-evidence input {
+  width: auto;
+  margin-top: 2px;
+}
+.completion-success {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--emerald);
+  font-size: 9px;
+}
+.report-link {
+  justify-self: start;
+}
+.incident-report {
+  width: min(1040px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 44px 0 80px;
+}
+.report-header {
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.report-header span {
+  color: var(--cyan);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+.report-header h1 {
+  margin: 8px 0;
+}
+.report-header p {
+  max-width: 620px;
+  color: var(--muted);
+  font-size: 9px;
+}
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-content: flex-start;
+}
+.report-actions a,
+.report-actions button,
+.report-section button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 9px;
+  text-decoration: none;
+}
+.report-score {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 8px;
+  align-items: baseline;
+  margin: 24px 0;
+  padding: 20px;
+  border-left: 3px solid var(--cyan);
+  background: var(--panel);
+}
+.report-score strong {
+  font-size: 34px;
+}
+.report-score span,
+.report-score p {
+  color: var(--muted);
+}
+.report-score p {
+  margin: 0 0 0 10px;
+}
+.report-section {
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+}
+.report-section h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+.report-section p,
+.report-section li {
+  font-size: 10px;
+  line-height: 1.65;
+}
+.score-breakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.score-breakdown article,
+.report-records article {
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.score-breakdown article {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+}
+.score-breakdown p {
+  grid-column: 1/-1;
+  margin: 0;
+  color: var(--muted);
+}
+.report-records {
+  display: grid;
+  gap: 8px;
+}
+.report-records article {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+}
+.report-records span,
+.report-records p {
+  color: var(--muted);
+}
+.report-records p {
+  grid-column: 1/-1;
+  margin: 0;
+}
+.replay-ok {
+  color: var(--emerald);
+}
+.replay-warning {
+  color: var(--amber);
+}
+.report-footer {
+  padding-top: 24px;
+}
+@media (max-width: 680px) {
+  .completion-grid,
+  .score-breakdown {
+    grid-template-columns: 1fr;
+  }
+  .report-header {
+    flex-direction: column;
+  }
+}
+@media print {
+  .site-header,
+  .site-footer,
+  .no-print,
+  .nextjs-toast {
+    display: none !important;
+  }
+  .incident-report {
+    width: 100%;
+    padding: 0;
+    color: #111;
+  }
+  .report-section,
+  .score-breakdown article,
+  .report-records article,
+  .report-score {
+    break-inside: avoid;
+    border-color: #bbb;
+    background: transparent;
+  }
+  @page {
+    margin: 14mm;
+  }
+}
 .incident-bar {
   display: grid;
   grid-template-columns: minmax(300px, 1fr) auto auto;

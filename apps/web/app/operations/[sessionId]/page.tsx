@@ -39,6 +39,7 @@ export default async function OperationsPage({
     "evidence",
     "actions",
     "notes",
+    "completion",
   ]);
   const tool = validTools.has(query.tool as ToolId)
     ? (query.tool as ToolId)

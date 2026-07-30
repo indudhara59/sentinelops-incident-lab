@@ -59,6 +59,44 @@ class HypothesisPatch(BaseModel):
     evidence_ids: list[Identifier] | None = Field(default=None, max_length=100)
 
 
+class RootCauseSubmission(BaseModel):
+    affected_service: Literal["api-gateway", "order-service", "orders-database", "payment-service"]
+    failure_mechanism: Literal[
+        "database-connections-not-released",
+        "slow-database-queries",
+        "traffic-capacity-shortfall",
+        "payment-provider-latency",
+    ]
+    triggering_change: Literal[
+        "order-service-2.14.7-deployment",
+        "traffic-increase",
+        "database-maintenance",
+        "no-recent-change",
+    ]
+    supporting_evidence: list[Identifier] = Field(min_length=3, max_length=20)
+    rejected_alternatives: list[ShortText] = Field(default_factory=list, max_length=8)
+    proposed_mitigation: Literal[
+        "rollback-order-service-2.14.7",
+        "restart-order-service",
+        "scale-order-service",
+        "increase-database-pool",
+        "continue-observing",
+    ]
+    confidence: int = Field(ge=0, le=100)
+
+
+class RecoveryVerificationRequest(BaseModel):
+    evidence_ids: list[Identifier] = Field(min_length=2, max_length=20)
+    observation: str = Field(min_length=20, max_length=2_000)
+
+
+class CompletionRequest(BaseModel):
+    incident_summary: str = Field(min_length=40, max_length=4_000)
+    customer_impact: str = Field(min_length=20, max_length=2_000)
+    lessons_learned: list[ShortText] = Field(min_length=1, max_length=10)
+    follow_up_actions: list[ShortText] = Field(min_length=1, max_length=10)
+
+
 class EventEnvelope(BaseModel):
     sequence: int
     type: Literal[

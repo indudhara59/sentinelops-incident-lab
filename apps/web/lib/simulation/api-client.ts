@@ -1,5 +1,10 @@
 import { getPublicEnv } from "@/lib/env";
-import type { EvidenceDefinition, HypothesisStatus } from "./types";
+import type {
+  CompletionDocumentation,
+  EvidenceDefinition,
+  HypothesisStatus,
+  RootCauseSubmission,
+} from "./types";
 
 export type ConnectionStatus =
   | "connecting"
@@ -148,6 +153,102 @@ export async function patchHypothesis(
       body: JSON.stringify(patch),
     },
   );
+}
+
+export async function submitRootCause(
+  sessionId: string,
+  submission: RootCauseSubmission,
+  idempotencyKey: string,
+) {
+  return request<{ snapshot: ApiSnapshot }>(
+    `/sessions/${encodeURIComponent(sessionId)}/root-cause`,
+    {
+      method: "POST",
+      headers: { "Idempotency-Key": idempotencyKey },
+      body: JSON.stringify(submission),
+    },
+  );
+}
+
+export async function verifyRecovery(
+  sessionId: string,
+  evidenceIds: string[],
+  observation: string,
+  idempotencyKey: string,
+) {
+  return request<{ snapshot: ApiSnapshot }>(
+    `/sessions/${encodeURIComponent(sessionId)}/recovery/verify`,
+    {
+      method: "POST",
+      headers: { "Idempotency-Key": idempotencyKey },
+      body: JSON.stringify({ evidence_ids: evidenceIds, observation }),
+    },
+  );
+}
+
+export async function completeIncident(
+  sessionId: string,
+  documentation: CompletionDocumentation,
+  idempotencyKey: string,
+) {
+  return request<{ snapshot: ApiSnapshot }>(
+    `/sessions/${encodeURIComponent(sessionId)}/complete`,
+    {
+      method: "POST",
+      headers: { "Idempotency-Key": idempotencyKey },
+      body: JSON.stringify(documentation),
+    },
+  );
+}
+
+export function reportUrl(
+  sessionId: string,
+  format: "report" | "report.json" | "timeline.csv",
+) {
+  return apiUrl(`/sessions/${encodeURIComponent(sessionId)}/${format}`);
+}
+
+export async function fetchReport(sessionId: string): Promise<IncidentReport> {
+  return request(`/sessions/${encodeURIComponent(sessionId)}/report`);
+}
+
+export interface IncidentReport {
+  schemaVersion: string;
+  sessionId: string;
+  scenario: { id: string; slug: string; title: string; version: string };
+  engineVersion: string;
+  seed: number;
+  executiveSummary: string;
+  customerImpact: string;
+  timeline: Array<Record<string, unknown>>;
+  alerts: Array<Record<string, unknown>>;
+  evidence: Array<Record<string, unknown>>;
+  hypotheses: Array<Record<string, unknown>>;
+  rootCause: string;
+  contributingFactors: string[];
+  actions: Array<Record<string, unknown>>;
+  recoveryVerification: { verified: boolean; checks: Record<string, boolean> };
+  score: {
+    total: number;
+    maximum: number;
+    breakdown: Array<{
+      category: string;
+      score: number;
+      maximum: number;
+      explanation: string;
+    }>;
+  };
+  missedEvidence: string[];
+  betterInvestigationPath: string[];
+  lessonsLearned: string[];
+  followUpActions: string[];
+  replay: {
+    scenarioVersion: string;
+    engineVersion: string;
+    seed: number;
+    actions: Array<{ action: string; second: number; targetId?: string }>;
+  };
+  disclaimer: string;
 }
 
 export function streamUrl(sessionId: string, after: number): string {

@@ -5,11 +5,14 @@ import type { LocalSessionRecord } from "@/lib/local-session";
 import {
   fetchSnapshot,
   patchHypothesis,
+  completeIncident,
   sendAction,
   sendEvidence,
   sendHypothesis,
+  submitRootCause,
   sessionCommand,
   streamUrl,
+  verifyRecovery,
   type ApiSnapshot,
   type ConnectionStatus,
   type StreamEnvelope,
@@ -39,6 +42,10 @@ const SERVER_FIELDS = [
   "actions",
   "mitigationAt",
   "modifiers",
+  "rootCauseSubmission",
+  "recoveryVerification",
+  "completionDocumentation",
+  "investigationCompleted",
 ] as const;
 
 function stateFromSnapshot(snapshot: ApiSnapshot): Partial<SimulationState> {
@@ -212,6 +219,17 @@ export function useAuthoritativeSimulation(
           key,
         );
       }
+      if (event.type === "SUBMIT_ROOT_CAUSE")
+        command = submitRootCause(sessionId, event.submission, key);
+      if (event.type === "VERIFY_RECOVERY")
+        command = verifyRecovery(
+          sessionId,
+          event.evidenceIds,
+          event.observation,
+          key,
+        );
+      if (event.type === "COMPLETE_INCIDENT")
+        command = completeIncident(sessionId, event.documentation, key);
       if (event.type === "RESET" || event.type === "ANNOTATE_EVIDENCE") {
         setActionError(
           "This control is unavailable for an authoritative session in Phase 5.",
