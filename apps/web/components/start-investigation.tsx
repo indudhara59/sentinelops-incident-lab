@@ -1,6 +1,7 @@
 "use client";
 
 import { createApiSession } from "@/lib/simulation/api-client";
+import { persistInitialApiSession } from "@/lib/persistence/client";
 import { createLocalSessionId, saveLocalSession } from "@/lib/local-session";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -29,8 +30,10 @@ export function StartInvestigation({
       let sessionId: string;
       let fallback = false;
       try {
-        sessionId = (await createApiSession(scenarioSlug)).id;
+        const apiSession = await createApiSession(scenarioSlug);
+        sessionId = apiSession.id;
         saveLocalSession(sessionId, scenarioSlug, sessionStorage, "api");
+        void persistInitialApiSession(apiSession).catch(() => undefined);
       } catch {
         sessionId = createLocalSessionId();
         fallback = true;
@@ -78,9 +81,9 @@ export function StartInvestigation({
         )}
       </button>
       <p className="session-note">
-        Creates an ephemeral API session. If the development API is unavailable,
-        an explicitly labelled local educational fallback is used. Neither mode
-        is durably persisted.
+        Creates an ephemeral simulation session. When you are signed in and
+        Atlas is available, bounded progress summaries are saved to your
+        account. Local educational fallback sessions are not persisted.
       </p>
       {error && (
         <p className="form-error" role="alert">

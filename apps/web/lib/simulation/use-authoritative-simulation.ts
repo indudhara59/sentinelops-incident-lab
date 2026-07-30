@@ -24,6 +24,11 @@ import type {
   ToolId,
 } from "./types";
 import { useSimulation } from "./use-simulation";
+import {
+  persistApiSnapshot,
+  persistIncidentReport,
+} from "@/lib/persistence/client";
+import { fetchReport } from "./api-client";
 
 const SERVER_FIELDS = [
   "seed",
@@ -238,7 +243,19 @@ export function useAuthoritativeSimulation(
       }
       if (!command) return;
       void command
-        .then(({ snapshot }) => applySnapshot(snapshot))
+        .then(async ({ snapshot }) => {
+          applySnapshot(snapshot);
+          await persistApiSnapshot(sessionId, snapshot).catch(
+            () => "not-saved" as const,
+          );
+          if (
+            event.type === "COMPLETE_INCIDENT" &&
+            snapshot.investigationCompleted
+          ) {
+            const report = await fetchReport(sessionId);
+            await persistIncidentReport(report).catch(() => undefined);
+          }
+        })
         .catch((error: unknown) =>
           setActionError(
             error instanceof Error

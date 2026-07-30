@@ -24,6 +24,10 @@ Allowlisted FastAPI scenario execution, ephemeral bounded sessions, validated co
 
 Evidence-linked root-cause submission, recovery verification over a stable signal window, transparent ten-category scoring, deterministic structured reports, versioned local replay, JSON/CSV export, and print styling.
 
+## Phase 7 — Accounts and persistence (complete)
+
+Optional online MongoDB Atlas persistence, Google authentication with Auth.js database sessions, immutable ownership enforcement, bounded saved investigation data, protected dashboard history and reports, preferences, safe indexes, and explicit unavailable states.
+
 ## Later phases (not started)
 
-Potential persistence, authentication, scoring, post-incident reports, team mode, custom scenario creation, and deployment. These are not available and no dates are promised.
+Potential team mode, custom scenario creation, and deployment hardening. These are not available and no dates are promised.

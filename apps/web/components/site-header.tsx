@@ -8,6 +8,7 @@ const links = [
   ["Scenarios", "/scenarios"],
   ["How it works", "/#workflow"],
   ["Learning center", "/learn"],
+  ["Dashboard", "/dashboard"],
 ] as const;
 
 export function SiteHeader() {

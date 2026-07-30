@@ -6,7 +6,6 @@ import {
   type IncidentReport,
 } from "@/lib/simulation/api-client";
 import { replayReport } from "@/lib/simulation/replay";
-import { loadLocalSession } from "@/lib/local-session";
 import { Download, Printer, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
@@ -22,17 +21,7 @@ export function IncidentReportPage({ sessionId }: { sessionId: string }) {
     () => true,
     () => false,
   );
-  const recordRaw = useSyncExternalStore(
-    () => () => undefined,
-    () => sessionStorage.getItem(`sentinelops:${sessionId}`),
-    () => null,
-  );
-  const valid = Boolean(
-    recordRaw && loadLocalSession(sessionId)?.execution === "api",
-  );
-
   useEffect(() => {
-    if (!valid) return;
     let active = true;
     void fetchReport(sessionId)
       .then((value) => {
@@ -49,20 +38,13 @@ export function IncidentReportPage({ sessionId }: { sessionId: string }) {
     return () => {
       active = false;
     };
-  }, [sessionId, valid]);
+  }, [sessionId]);
 
   if (!hydrated)
     return (
       <ReportMessage
         title="Preparing report"
         text="Validating the ephemeral session…"
-      />
-    );
-  if (!valid)
-    return (
-      <ReportMessage
-        title="Report unavailable"
-        text="This report requires the originating ephemeral API session in this tab."
       />
     );
   if (error) return <ReportMessage title="Report not ready" text={error} />;
@@ -164,7 +146,7 @@ export function IncidentReportPage({ sessionId }: { sessionId: string }) {
         <StringList items={report.followUpActions} />
       </ReportSection>
 
-      <section className="report-section no-print">
+      <section id="replay" className="report-section no-print">
         <h2>Deterministic replay</h2>
         <p>
           Replay uses the recorded scenario version, seed, engine version,

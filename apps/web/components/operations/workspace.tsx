@@ -95,6 +95,7 @@ export function OperationsWorkspace({
     return <InvalidLocalSession />;
   return (
     <Workspace
+      sessionId={sessionId}
       state={state}
       dispatch={dispatch}
       connection={connection}
@@ -105,12 +106,14 @@ export function OperationsWorkspace({
 }
 
 function Workspace({
+  sessionId,
   state,
   dispatch,
   connection,
   lastSynchronized,
   actionError,
 }: {
+  sessionId: string;
   state: SimulationState;
   dispatch: React.Dispatch<SimulationEvent>;
   connection: string;
@@ -329,10 +332,17 @@ function Workspace({
       </div>
       <ConfirmDialog
         open={exitOpen}
-        title="Abandon this local investigation?"
-        description="Progress in this tab will be abandoned. No server history exists."
+        title="Abandon this investigation?"
+        description="The simulation will stop here. Signed-in saved history is marked abandoned; local fallback progress is not retained."
         confirmLabel="Exit investigation"
         onCancel={() => setExitOpen(false)}
+        onConfirm={() => {
+          void fetch(`/api/incidents/${encodeURIComponent(sessionId)}`, {
+            method: "PATCH",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ status: "abandoned" }),
+          });
+        }}
         href="/scenarios/midnight-latency-incident"
       />
       <ConfirmDialog
@@ -1146,7 +1156,11 @@ function ConfirmDialog({
             Cancel
           </button>
           {href ? (
-            <Link className="danger-action" href={href}>
+            <Link
+              className="danger-action"
+              href={href}
+              {...(onConfirm ? { onClick: onConfirm } : {})}
+            >
               {confirmLabel}
             </Link>
           ) : (

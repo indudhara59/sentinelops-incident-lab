@@ -10,13 +10,17 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:indexes": "node scripts/setup-indexes.mjs"
   },
   "dependencies": {
+    "@auth/mongodb-adapter": "^3.11.3",
     "@sentinelops/shared": "workspace:*",
     "framer-motion": "^12.29.2",
     "lucide-react": "^0.562.0",
+    "mongodb": "^6.21.0",
     "next": "16.2.12",
+    "next-auth": "5.0.0-beta.32",
     "next-themes": "^0.4.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"

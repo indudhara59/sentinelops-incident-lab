@@ -205,11 +205,23 @@ export function reportUrl(
   sessionId: string,
   format: "report" | "report.json" | "timeline.csv",
 ) {
+  if (format === "report.json")
+    return `/api/reports/${encodeURIComponent(sessionId)}/export?format=json`;
+  if (format === "timeline.csv")
+    return `/api/reports/${encodeURIComponent(sessionId)}/export?format=csv`;
   return apiUrl(`/sessions/${encodeURIComponent(sessionId)}/${format}`);
 }
 
 export async function fetchReport(sessionId: string): Promise<IncidentReport> {
-  return request(`/sessions/${encodeURIComponent(sessionId)}/report`);
+  try {
+    const response = await fetch(
+      `/api/reports/${encodeURIComponent(sessionId)}`,
+    );
+    if (!response.ok) throw new Error("Persistent report unavailable");
+    return (await response.json()) as IncidentReport;
+  } catch {
+    return request(`/sessions/${encodeURIComponent(sessionId)}/report`);
+  }
 }
 
 export interface IncidentReport {
