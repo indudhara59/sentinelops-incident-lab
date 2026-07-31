@@ -32,6 +32,10 @@ Optional online MongoDB Atlas persistence, Google authentication with Auth.js da
 
 Four additional deterministic built-in engines, distinct topology and truth profiles, scenario-specific evidence, actions, recovery, scoring and reports, plus an authenticated owner-only declarative builder with validation, preview, private test runs, duplication, archive, and immutable historical versions.
 
+## Phase 9 — Learning center (complete)
+
+Twelve original observability and incident-response topic guides, a ten-step accessible guided journey, explanatory knowledge checks, guest-local and authenticated progress, resume/reset, glossary cross-links, safe lab launches, public metadata, sitemap, robots policy, and authoritative-source documentation.
+
 ## Later phases (not started)
 
 Potential team mode, public marketplace workflows, and deployment hardening. These are not available and no dates are promised.

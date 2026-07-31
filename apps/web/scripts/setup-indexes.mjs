@@ -116,6 +116,13 @@ const indexes = {
   user_preferences: [
     { key: { ownerId: 1 }, name: "owner_unique", unique: true },
   ],
+  learning_progress: [
+    {
+      key: { ownerId: 1, courseVersion: 1 },
+      name: "owner_course_unique",
+      unique: true,
+    },
+  ],
 };
 
 try {

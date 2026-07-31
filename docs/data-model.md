@@ -1,6 +1,6 @@
 # Persistent data model
 
-Auth.js owns `users`, `accounts`, and `sessions`. SentinelOps owns `incident_sessions`, `incident_reports`, `evidence_items`, `hypotheses`, `saved_scenarios`, and `user_preferences`.
+Auth.js owns `users`, `accounts`, and `sessions`. SentinelOps owns `incident_sessions`, `incident_reports`, `evidence_items`, `hypotheses`, `saved_scenarios`, `user_preferences`, and `learning_progress`.
 
 Every application-owned document includes an immutable `ownerId` copied from the authenticated Auth.js user ID. Updates never accept `ownerId` from a request. Child records also contain `incidentSessionId`, and reads, updates, exports, replays, and deletes match both identifiers.
 
@@ -13,3 +13,7 @@ Indexes place `ownerId` first and cover status, scenario, creation, completion, 
 ## Custom scenarios
 
 `saved_scenarios` stores private declarative drafts with `ownerId`, stable `scenarioId`, integer `version`, schema version, content hash, validation status, archive state, and timestamps. The unique owner/scenario/version index preserves historical versions. Meaningful edits replace an unplayed draft version; after an exact version has completed sessions, edits create the next version. Incident sessions and reports retain the exact scenario version used.
+
+# Learning progress
+
+`learning_progress` stores one bounded record per immutable owner and course version: completed step IDs, current step ID, and timestamps. Step IDs are validated against the code-reviewed course registry. Guest fallback stays in browser local storage; answer selections and free-form content are not persisted.

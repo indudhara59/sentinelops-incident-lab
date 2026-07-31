@@ -8,6 +8,7 @@ export const COLLECTIONS = {
   hypotheses: "hypotheses",
   savedScenarios: "saved_scenarios",
   userPreferences: "user_preferences",
+  learningProgress: "learning_progress",
 } as const;
 
 export const PERSISTENCE_LIMITS = {
@@ -75,6 +76,16 @@ export type UserPreferencesDocument = {
   reducedMotion: boolean;
   defaultSimulationSpeed: 0.5 | 1 | 2 | 4;
   telemetryDensity: "compact" | "comfortable";
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type LearningProgressDocument = {
+  _id: string;
+  ownerId: string;
+  courseVersion: string;
+  completedStepIds: string[];
+  currentStepId: string;
   createdAt: Date;
   updatedAt: Date;
 };

@@ -20,3 +20,7 @@ FastAPI serves the authoritative ephemeral simulation under `/api/v1`. Developme
 State-changing requests accept an `Idempotency-Key` of at most 128 characters. Clients should generate a new key per user intent and reuse it only when retrying that intent. Errors use `{error: {code, message, details, request_id}}`; `X-Request-ID` is echoed when valid.
 
 The API has no authentication in this phase and must not be exposed as a multi-user production service.
+
+# Learning progress
+
+`GET /api/learning-progress` and `PUT /api/learning-progress` are same-origin Auth.js-protected handlers for the bounded guided-course record. They return `401` for guests so the public client can use its documented local fallback. Reads and upserts always use the immutable owner ID and fixed course version; arbitrary course IDs and step IDs are not accepted.

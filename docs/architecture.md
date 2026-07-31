@@ -28,3 +28,7 @@ Phase 8 extends FastAPI's static registry to five frozen built-in runtime profil
 - Every API response receives an `X-Request-ID`; valid client-supplied IDs are preserved.
 - Exceptions produce stable JSON envelopes without production tracebacks.
 - Operational examples are fictional and local-only.
+
+# Phase 9 learning boundary
+
+Public learning content is a code-reviewed typed registry rendered by static topic routes. The interactive course is client-side and independent of the simulation engine. Its same-origin progress adapter attempts the authenticated, owner-scoped Next.js API and falls back to a bounded browser record for guests or persistence outages. It never sends a request for individual answer selections and stores no free-form learner data.

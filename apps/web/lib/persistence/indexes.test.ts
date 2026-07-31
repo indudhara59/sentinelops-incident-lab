@@ -23,6 +23,7 @@ describe("persistence indexes", () => {
       COLLECTIONS.hypotheses,
       COLLECTIONS.savedScenarios,
       COLLECTIONS.userPreferences,
+      COLLECTIONS.learningProgress,
     ]) {
       expect(plan[name]?.some((index) => index.unique)).toBe(true);
     }

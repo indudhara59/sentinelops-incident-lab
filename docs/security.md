@@ -13,3 +13,7 @@ SentinelOps persists summaries, evidence, hypotheses, actions, scores, and repor
 Builder APIs repeat Auth.js ownership checks for list, read, edit, preview source, duplicate, archive, validate, and private test-run operations. Cross-user records return not found. Draft validation rejects cyclic or invalid dependencies, unreachable stages, unsafe ranges, excessive arrays, oversized text, missing evidence/truth/recovery actions, invalid score totals, and impossible recovery windows.
 
 The schema has no code, command, regex, URL, hostname, socket, filesystem, credential, or arbitrary network field. String scanning rejects executable template markers and common code, command, and network patterns. Log interpolation supports only the inert `{service}` replacement. Custom drafts are never imported into Python or JavaScript and never produce real requests.
+
+# Learning progress
+
+Learning content is public. Progress persistence accepts only fixed course and step identifiers, derives ownership from Auth.js, bounds completed IDs to the reviewed registry, and uses a unique owner/course index. Guest fallback is non-sensitive local storage. Knowledge-check selections, telemetry, certificates, and employment-assessment claims are not stored or produced.

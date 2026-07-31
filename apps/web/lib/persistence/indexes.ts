@@ -95,6 +95,13 @@ export function persistenceIndexPlan(): IndexPlan {
     [COLLECTIONS.userPreferences]: [
       { key: { ownerId: 1 }, name: "owner_unique", unique: true },
     ],
+    [COLLECTIONS.learningProgress]: [
+      {
+        key: { ownerId: 1, courseVersion: 1 },
+        name: "owner_course_unique",
+        unique: true,
+      },
+    ],
   };
 }
 
