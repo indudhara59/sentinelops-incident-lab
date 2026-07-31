@@ -1,0 +1,21 @@
+services:
+  api:
+    build:
+      context: ./services/api
+    environment:
+      SENTINELOPS_ENVIRONMENT: development
+      SENTINELOPS_CORS_ORIGINS: '["http://localhost:3000"]'
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s

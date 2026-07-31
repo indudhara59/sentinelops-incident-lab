@@ -1,5 +1,6 @@
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import urlparse
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -31,9 +32,20 @@ class Settings(BaseSettings):
             raise ValueError("at least one CORS origin is required")
         if "*" in origins:
             raise ValueError("wildcard CORS origins are not allowed")
-        if any(not origin.startswith(("http://", "https://")) for origin in origins):
+        parsed = [urlparse(origin) for origin in origins]
+        if any(item.scheme not in {"http", "https"} or not item.netloc for item in parsed):
             raise ValueError("CORS origins must use http or https")
+        if any(item.path not in {"", "/"} or item.query or item.fragment for item in parsed):
+            raise ValueError("CORS origins must not contain paths, queries, or fragments")
         return origins
+
+    def validate_production(self) -> None:
+        if not self.is_production:
+            return
+        if any(origin.startswith("http://") for origin in self.cors_origins):
+            raise ValueError("production CORS origins must use https")
+        if any("localhost" in origin or "127.0.0.1" in origin for origin in self.cors_origins):
+            raise ValueError("production CORS origins must not use loopback hosts")
 
     @property
     def is_production(self) -> bool:

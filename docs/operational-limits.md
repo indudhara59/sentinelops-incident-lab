@@ -13,3 +13,5 @@ Phase 5 defaults are development safeguards, configurable through validated `SEN
 Limits are enforced before or under the per-session lock. Automatic simulation ticks do not consume the client request allowance. Capacity, rate, validation, conflict, expiry, and absence errors have distinct stable codes. Cleanup is safe and cancellable.
 
 The store is process-local. Multiple workers would create unrelated session sets, so this phase should run one API worker. Restarting the process intentionally loses every session.
+
+Production additionally requires exact HTTPS non-loopback CORS origins. WebSocket subscribers require a separate 256-bit capability and an allowed browser Origin. HTTP payloads larger than 1 KiB are compressed; subscriber/event batches remain bounded. `/health` reports liveness and `/ready` reports process/store readiness plus the active-session count.

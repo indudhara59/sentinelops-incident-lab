@@ -1,5 +1,6 @@
 import asyncio
 import re
+import secrets
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, Response, WebSocket, WebSocketDisconnect
@@ -65,9 +66,10 @@ async def scenario(slug: str) -> ScenarioSummary:
     return definition.public
 
 
-def _session_response(session: Session) -> SessionResponse:
+def _session_response(session: Session, *, include_stream_token: bool = False) -> SessionResponse:
     return SessionResponse(
         id=session.id,
+        stream_token=session.stream_token if include_stream_token else None,
         scenario_slug=session.scenario.public.slug,
         seed=session.seed,
         version=session.version,
@@ -85,7 +87,7 @@ async def create_session(body: CreateSessionRequest) -> SessionResponse:
         )
     session = await store.create(definition, body.seed)
     await store.start_runner(session)
-    return _session_response(session)
+    return _session_response(session, include_stream_token=True)
 
 
 @router.get("/sessions/{session_id}", response_model=SessionResponse, tags=["sessions"])
@@ -377,22 +379,29 @@ async def delete_session(session_id: str) -> Response:
 
 
 @router.websocket("/sessions/{session_id}/stream")
-async def session_stream(websocket: WebSocket, session_id: str, after: int = 0) -> None:
-    await websocket.accept()
+async def session_stream(
+    websocket: WebSocket,
+    session_id: str,
+    after: int = 0,
+) -> None:
+    settings = get_settings()
+    origin = websocket.headers.get("origin")
+    if settings.is_production and origin not in settings.cors_origins:
+        await websocket.close(code=4403, reason="Origin not allowed")
+        return
     try:
         session = await store.get(session_id)
-    except StoreError as exc:
-        await websocket.send_json(
-            {
-                "error": {
-                    "code": exc.code,
-                    "message": exc.message,
-                    "request_id": websocket.headers.get("x-request-id", "websocket"),
-                }
-            }
-        )
+    except StoreError:
         await websocket.close(code=4404)
         return
+    offered_protocols = [
+        item.strip() for item in websocket.headers.get("sec-websocket-protocol", "").split(",")
+    ]
+    expected_protocol = f"sentinelops.{session.stream_token}"
+    if not any(secrets.compare_digest(item, expected_protocol) for item in offered_protocols):
+        await websocket.close(code=4401, reason="Invalid stream capability")
+        return
+    await websocket.accept(subprotocol=expected_protocol)
     queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=32)
     session.subscribers.add(queue)
     try:

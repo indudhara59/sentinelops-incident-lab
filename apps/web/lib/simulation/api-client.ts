@@ -24,6 +24,7 @@ export interface ApiSnapshot {
 
 export interface SessionEnvelope {
   id: string;
+  stream_token: string;
   scenario_slug: string;
   seed: number;
   version: number;

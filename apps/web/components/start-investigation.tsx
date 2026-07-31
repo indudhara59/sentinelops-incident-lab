@@ -32,7 +32,13 @@ export function StartInvestigation({
       try {
         const apiSession = await createApiSession(scenarioSlug);
         sessionId = apiSession.id;
-        saveLocalSession(sessionId, scenarioSlug, sessionStorage, "api");
+        saveLocalSession(
+          sessionId,
+          scenarioSlug,
+          sessionStorage,
+          "api",
+          apiSession.stream_token,
+        );
         void persistInitialApiSession(apiSession).catch(() => undefined);
       } catch {
         if (scenarioSlug !== "midnight-latency-incident") {

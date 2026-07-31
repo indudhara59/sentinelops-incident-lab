@@ -11,6 +11,15 @@ def test_health_endpoint() -> None:
     assert response.json() == {"status": "ok"}
 
 
+def test_readiness_and_security_headers() -> None:
+    response = client.get("/ready")
+    assert response.status_code == 200
+    assert response.json()["session_store"] == "available"
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["referrer-policy"] == "strict-origin-when-cross-origin"
+    assert "camera=()" in response.headers["permissions-policy"]
+
+
 def test_request_id_is_generated_and_returned() -> None:
     response = client.get("/health")
     assert response.headers["x-request-id"]
@@ -41,3 +50,15 @@ def test_unexpected_error_does_not_leak_stack_trace() -> None:
     assert body["error"]["code"] == "INTERNAL_SERVER_ERROR"
     assert body["error"]["request_id"] == "error-123"
     assert "traceback" not in response.text.lower()
+
+
+def test_validation_error_does_not_echo_sensitive_input() -> None:
+    response = client.post(
+        "/api/v1/sessions",
+        json={
+            "scenario_slug": "midnight-latency-incident",
+            "seed": "secret-value-that-must-not-echo",
+        },
+    )
+    assert response.status_code == 422
+    assert "secret-value-that-must-not-echo" not in response.text

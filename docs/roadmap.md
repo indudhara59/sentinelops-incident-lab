@@ -36,6 +36,10 @@ Four additional deterministic built-in engines, distinct topology and truth prof
 
 Twelve original observability and incident-response topic guides, a ten-step accessible guided journey, explanatory knowledge checks, guest-local and authenticated progress, resume/reset, glossary cross-links, safe lab launches, public metadata, sitemap, robots policy, and authoritative-source documentation.
 
+## Phase 10 — Deployment and portfolio hardening (complete in repository scope)
+
+Vercel and Render/Railway configuration, single-worker API container, readiness and compression, WebSocket origin/capability protection, strict production CORS and response headers, CI/browser/audit/OpenAPI workflows, accessibility and performance review, threat/security documentation, community/legal files, demo script, and professional portfolio presentation. No external deployment is claimed.
+
 ## Later phases (not started)
 
 Potential team mode, public marketplace workflows, and deployment hardening. These are not available and no dates are promised.

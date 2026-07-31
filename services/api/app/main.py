@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager, suppress
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.v1 import router as v1_router
@@ -24,6 +25,7 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    settings.validate_production()
     configure_logging(settings.log_level)
     store.max_sessions = settings.max_active_sessions
     store.ttl_seconds = settings.session_ttl_seconds
@@ -62,6 +64,7 @@ app.add_middleware(
     allow_headers=["Accept", "Content-Type", "X-Request-ID", "Idempotency-Key"],
     expose_headers=["X-Request-ID"],
 )
+app.add_middleware(GZipMiddleware, minimum_size=1_024)
 app.middleware("http")(request_context_middleware)
 app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
 app.add_exception_handler(StarletteHTTPException, http_error_handler)  # type: ignore[arg-type]
@@ -82,6 +85,15 @@ async def root() -> dict[str, str]:
 @app.get("/health", tags=["health"])
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/ready", tags=["health"])
+async def readiness() -> dict[str, str | int]:
+    return {
+        "status": "ready",
+        "session_store": "available",
+        "active_sessions": len(store.sessions),
+    }
 
 
 @app.get("/_test/error", include_in_schema=False)

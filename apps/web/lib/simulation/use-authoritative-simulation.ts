@@ -143,7 +143,10 @@ export function useAuthoritativeSimulation(
         const result = await fetchSnapshot(sessionId, sequence.current);
         if (closed) return;
         applySnapshot(result.snapshot);
-        socket = new WebSocket(streamUrl(sessionId, sequence.current));
+        if (!record.streamToken) throw new Error("Missing stream capability");
+        socket = new WebSocket(streamUrl(sessionId, sequence.current), [
+          `sentinelops.${record.streamToken}`,
+        ]);
         socket.onopen = () => {
           reconnects.current = 0;
           setConnection("connected");
@@ -174,7 +177,7 @@ export function useAuthoritativeSimulation(
       if (polling.current !== null) window.clearInterval(polling.current);
       polling.current = null;
     };
-  }, [applySnapshot, record?.execution, sessionId]);
+  }, [applySnapshot, record?.execution, record?.streamToken, sessionId]);
 
   const dispatch = useCallback(
     (event: SimulationEvent) => {

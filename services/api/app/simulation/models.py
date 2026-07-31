@@ -96,6 +96,7 @@ class EventEnvelope(BaseModel):
 
 class SessionResponse(BaseModel):
     id: str
+    stream_token: str | None = None
     scenario_slug: str
     seed: int
     version: int

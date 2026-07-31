@@ -24,3 +24,7 @@ The API has no authentication in this phase and must not be exposed as a multi-u
 # Learning progress
 
 `GET /api/learning-progress` and `PUT /api/learning-progress` are same-origin Auth.js-protected handlers for the bounded guided-course record. They return `401` for guests so the public client can use its documented local fallback. Reads and upserts always use the immutable owner ID and fixed course version; arbitrary course IDs and step IDs are not accepted.
+
+# Runtime health and stream capability
+
+`GET /health` is a liveness probe. `GET /ready` confirms the in-process session store is initialized and reports the active-session count for deployment diagnostics. `POST /api/v1/sessions` returns a stream capability once; later session reads and snapshots do not disclose it. WebSocket authentication and reconnect behavior are documented in the real-time protocol.

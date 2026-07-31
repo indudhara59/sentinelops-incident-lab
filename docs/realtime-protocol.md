@@ -1,6 +1,8 @@
 # Real-time protocol
 
-Connect to `WS /api/v1/sessions/{id}/stream?after=N`. The first message is a `snapshot` envelope containing current authoritative state and retained events newer than `N`. Later envelopes have a monotonically increasing `sequence`, `session_id`, `type`, and `payload`.
+Session creation returns a high-entropy `stream_token` once. Keep it in tab-scoped session storage and connect to `WS /api/v1/sessions/{id}/stream?after=N` while offering `sentinelops.STREAM_TOKEN` as the WebSocket subprotocol. This keeps the capability out of URLs and routine access logs. Production rejects WebSocket origins outside the exact HTTPS CORS allowlist before acceptance, then compares the capability in constant time and selects the offered subprotocol. The token is not returned by later session reads or included in snapshots/logs.
+
+The first accepted message is a `snapshot` envelope containing current authoritative state and retained events newer than `N`. Later envelopes have a monotonically increasing `sequence`, `session_id`, `type`, and `payload`.
 
 Event types are `telemetry.batch`, `state.updated`, `action.result`, and `session.cancelled`. A telemetry batch carries the new snapshot plus up to two logs, one metric sample, and one trace for an interval; alerts, timeline, recovery, and lifecycle status are represented in that same versioned snapshot.
 

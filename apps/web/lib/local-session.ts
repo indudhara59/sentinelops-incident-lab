@@ -5,6 +5,7 @@ export interface LocalSessionRecord {
   createdAt: string;
   phase: 2 | 5;
   execution?: "api" | "local-fallback";
+  streamToken?: string;
 }
 
 export function createLocalSessionId(
@@ -26,6 +27,7 @@ export function saveLocalSession(
   scenarioSlug: string,
   storage: Pick<Storage, "setItem"> = sessionStorage,
   execution: LocalSessionRecord["execution"] = "local-fallback",
+  streamToken?: string,
 ): void {
   if (!isValidLocalSessionId(sessionId))
     throw new Error("Invalid local session ID.");
@@ -34,6 +36,7 @@ export function saveLocalSession(
     createdAt: new Date().toISOString(),
     phase: 5,
     execution,
+    ...(execution === "api" && streamToken ? { streamToken } : {}),
   };
   storage.setItem(`sentinelops:${sessionId}`, JSON.stringify(record));
 }
@@ -50,7 +53,13 @@ export function loadLocalSession(
     return typeof parsed.scenarioSlug === "string" &&
       typeof parsed.createdAt === "string" &&
       (parsed.phase === 2 || parsed.phase === 5)
-      ? (parsed as LocalSessionRecord)
+      ? {
+          ...(parsed as LocalSessionRecord),
+          ...(typeof parsed.streamToken === "string" &&
+          /^[A-Za-z0-9_-]{32,128}$/.test(parsed.streamToken)
+            ? { streamToken: parsed.streamToken }
+            : {}),
+        }
       : null;
   } catch {
     return null;

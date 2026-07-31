@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: sentinelops-api
+    runtime: docker
+    dockerfilePath: ./services/api/Dockerfile
+    dockerContext: ./services/api
+    healthCheckPath: /ready
+    autoDeployTrigger: commit
+    envVars:
+      - key: SENTINELOPS_ENVIRONMENT
+        value: production
+      - key: SENTINELOPS_LOG_LEVEL
+        value: INFO
+      - key: SENTINELOPS_CORS_ORIGINS
+        sync: false
+      - key: SENTINELOPS_MAX_ACTIVE_SESSIONS
+        value: "50"
+      - key: SENTINELOPS_SESSION_TTL_SECONDS
+        value: "1800"
+      - key: SENTINELOPS_SESSION_RATE_LIMIT_PER_MINUTE
+        value: "120"

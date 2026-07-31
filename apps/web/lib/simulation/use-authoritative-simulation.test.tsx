@@ -10,6 +10,7 @@ const apiRecord: LocalSessionRecord = {
   createdAt: "2026-01-01T00:00:00Z",
   phase: 5,
   execution: "api",
+  streamToken: "test_stream_capability_0123456789abcdef",
 };
 const localRecord: LocalSessionRecord = {
   ...apiRecord,

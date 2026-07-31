@@ -25,6 +25,7 @@ class StoreError(Exception):
 @dataclass
 class Session:
     id: str
+    stream_token: str
     scenario: ScenarioDefinition
     seed: int
     state: dict[str, Any]
@@ -78,6 +79,7 @@ class SessionStore:
             now = time.monotonic()
             session = Session(
                 id=session_id,
+                stream_token=secrets.token_urlsafe(32),
                 scenario=scenario,
                 seed=chosen_seed,
                 state=initial_state(scenario, chosen_seed),

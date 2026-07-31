@@ -8,25 +8,35 @@
     "pnpm": ">=10.0.0"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter @sentinelops/web dev",
-    "dev:web": "pnpm --filter @sentinelops/web dev",
-    "dev:api": "cd services/api && uvicorn app.main:app --reload",
-    "build": "pnpm --filter @sentinelops/web build",
-    "lint": "pnpm lint:web && pnpm lint:api",
-    "lint:web": "pnpm --filter @sentinelops/web lint",
-    "lint:api": "cd services/api && ruff check .",
-    "typecheck": "pnpm typecheck:web && pnpm typecheck:shared && pnpm typecheck:api",
-    "typecheck:web": "pnpm --filter @sentinelops/web typecheck",
-    "typecheck:shared": "pnpm --filter @sentinelops/shared typecheck",
-    "typecheck:api": "cd services/api && mypy app",
-    "test": "pnpm test:web && pnpm test:api",
-    "test:web": "pnpm --filter @sentinelops/web test",
-    "test:api": "cd services/api && pytest",
-    "format": "prettier --write . && cd services/api && ruff format .",
-    "format:check": "prettier --check . && cd services/api && ruff format --check .",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "dev": "corepack pnpm --parallel --filter @sentinelops/web dev",
+    "dev:web": "corepack pnpm --filter @sentinelops/web dev",
+    "dev:api": "cd services/api && .venv/bin/uvicorn app.main:app --reload",
+    "build": "corepack pnpm --filter @sentinelops/web build",
+    "lint": "corepack pnpm lint:web && corepack pnpm lint:api",
+    "lint:web": "corepack pnpm --filter @sentinelops/web lint",
+    "lint:api": "cd services/api && .venv/bin/ruff check .",
+    "typecheck": "corepack pnpm typecheck:web && corepack pnpm typecheck:shared && corepack pnpm typecheck:api",
+    "typecheck:web": "corepack pnpm --filter @sentinelops/web typecheck",
+    "typecheck:shared": "corepack pnpm --filter @sentinelops/shared typecheck",
+    "typecheck:api": "cd services/api && .venv/bin/mypy app",
+    "test": "corepack pnpm test:web && corepack pnpm test:api",
+    "test:web": "corepack pnpm --filter @sentinelops/web test",
+    "test:api": "cd services/api && .venv/bin/pytest",
+    "format": "prettier --write . && cd services/api && .venv/bin/ruff format .",
+    "format:check": "prettier --check . && cd services/api && .venv/bin/ruff format --check .",
+    "verify": "corepack pnpm lint && corepack pnpm typecheck && corepack pnpm test && corepack pnpm build"
   },
   "devDependencies": {
     "prettier": "^3.7.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "brace-expansion@<1.1.16": "1.1.16",
+      "brace-expansion@>=2.0.0 <2.0.2": "2.0.2",
+      "brace-expansion@>=3.0.0 <3.0.1": "3.0.1",
+      "brace-expansion@>=4.0.0 <4.0.1": "4.0.1",
+      "postcss": "8.5.18",
+      "sharp": "0.35.0"
+    }
   }
 }

@@ -1,6 +1,7 @@
 import {
   createLocalSessionId,
   isValidLocalSessionId,
+  loadLocalSession,
   saveLocalSession,
 } from "./local-session";
 
@@ -39,5 +40,26 @@ describe("local session validation", () => {
       "Invalid local session ID",
     );
     expect(setItem).not.toHaveBeenCalled();
+  });
+
+  it("retains a valid API stream capability only in the tab record", () => {
+    let value = "";
+    const storage = {
+      setItem: (_key: string, item: string) => {
+        value = item;
+      },
+      getItem: () => value,
+    };
+    const id = "sim_0123456789abcdef0123456789abcdef";
+    saveLocalSession(
+      id,
+      "midnight-latency-incident",
+      storage,
+      "api",
+      "stream_capability_0123456789abcdef",
+    );
+    expect(loadLocalSession(id, storage)?.streamToken).toBe(
+      "stream_capability_0123456789abcdef",
+    );
   });
 });

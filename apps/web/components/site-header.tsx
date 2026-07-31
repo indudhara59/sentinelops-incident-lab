@@ -12,6 +12,10 @@ const links = [
 ] as const;
 
 export function SiteHeader() {
+  const repositoryUrl = process.env.NEXT_PUBLIC_REPOSITORY_URL;
+  const safeRepositoryUrl = repositoryUrl?.startsWith("https://github.com/")
+    ? repositoryUrl
+    : null;
   return (
     <header className="site-header">
       <div className="container header-inner">
@@ -24,14 +28,20 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="header-actions">
-          <a
-            className="icon-link github-link"
-            href="https://github.com"
-            aria-label="GitHub placeholder — repository coming soon"
-          >
-            <Github size={17} aria-hidden="true" />
-            <span>GitHub</span>
-          </a>
+          {safeRepositoryUrl ? (
+            <a className="icon-link github-link" href={safeRepositoryUrl}>
+              <Github size={17} aria-hidden="true" />
+              <span>GitHub</span>
+            </a>
+          ) : (
+            <span
+              className="icon-link github-link"
+              aria-label="Repository link not configured"
+            >
+              <Github size={17} aria-hidden="true" />
+              <span>Repository</span>
+            </span>
+          )}
           <ThemeSelector />
           <Link className="button button-small" href="/lab">
             Enter Incident Lab

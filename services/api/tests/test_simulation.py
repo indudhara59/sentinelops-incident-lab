@@ -3,6 +3,7 @@ import time
 from typing import Any
 
 from fastapi.testclient import TestClient
+from starlette.websockets import WebSocketDisconnect
 
 from app.main import app
 from app.simulation.engine import MAX_LOGS, MAX_METRICS, MAX_TRACES, advance
@@ -166,8 +167,12 @@ def test_concurrent_actions_are_serialized() -> None:
 def test_websocket_snapshot_and_reconnection_history() -> None:
     created = create_session()
     session_id = created["id"]
+    stream_token = created["stream_token"]
     client.post(f"/api/v1/sessions/{session_id}/step")
-    with client.websocket_connect(f"/api/v1/sessions/{session_id}/stream?after=0") as socket:
+    with client.websocket_connect(
+        f"/api/v1/sessions/{session_id}/stream?after=0",
+        subprotocols=[f"sentinelops.{stream_token}"],
+    ) as socket:
         message = socket.receive_json()
         assert message["type"] == "snapshot"
         assert message["payload"]["snapshot"]["tick"] == 1
@@ -176,6 +181,22 @@ def test_websocket_snapshot_and_reconnection_history() -> None:
     assert resync.status_code == 200
     assert resync.json()["events"][0]["type"] == "telemetry.batch"
     client.delete(f"/api/v1/sessions/{session_id}")
+
+
+def test_websocket_rejects_missing_stream_capability() -> None:
+    created = create_session()
+    try:
+        with client.websocket_connect(f"/api/v1/sessions/{created['id']}/stream"):
+            raise AssertionError("Missing capability must not connect")
+    except WebSocketDisconnect as exc:
+        assert exc.code == 4401
+
+
+def test_stream_capability_is_not_returned_by_session_read() -> None:
+    created = create_session()
+    response = client.get(f"/api/v1/sessions/{created['id']}")
+    assert response.status_code == 200
+    assert response.json()["stream_token"] is None
 
 
 def test_generated_openapi_documents_phase_five_routes() -> None:

@@ -54,7 +54,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     authorized({ auth: session, request }) {
       const protectedRoute =
         request.nextUrl.pathname.startsWith("/dashboard") ||
-        request.nextUrl.pathname.startsWith("/settings");
+        request.nextUrl.pathname.startsWith("/settings") ||
+        request.nextUrl.pathname.startsWith("/scenario-builder");
       return !protectedRoute || Boolean(session?.user?.id);
     },
   },

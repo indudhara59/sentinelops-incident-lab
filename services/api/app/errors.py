@@ -27,13 +27,21 @@ def error_payload(
 
 
 async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    safe_details = [
+        {
+            "type": item.get("type", "validation_error"),
+            "loc": item.get("loc", ()),
+            "msg": item.get("msg", "Invalid value"),
+        }
+        for item in exc.errors()
+    ]
     return JSONResponse(
         status_code=422,
         content=error_payload(
             request,
             code="VALIDATION_FAILED",
             message="The request could not be processed.",
-            details=exc.errors(),
+            details=safe_details,
         ),
     )
 
